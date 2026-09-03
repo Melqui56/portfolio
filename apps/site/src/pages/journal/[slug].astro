@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JournalEntry from '../../components/sections/JournalEntry.astro';
+import { getCollection } from 'astro:content';
+import { ui, getLangFromUrl, defaultLang } from '../../i18n/ui';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('posts');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { post: entry },
+  }));
+}
+
+const lang = getLangFromUrl(Astro.url);
+const { post } = Astro.props;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  lang={lang}
+  ogType="article"
+  pubDate={post.data.date}
+>
+  <JournalEntry lang={lang} post={post} />
+</BaseLayout>

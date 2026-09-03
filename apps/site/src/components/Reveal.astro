@@ -1,0 +1,18 @@
+---
+interface Props {
+  delay?: number;
+  y?: number;
+  className?: string;
+}
+
+const { delay = 0, y = 24, className = '' } = Astro.props;
+---
+
+<!-- Reveal-on-scroll wrapper (vanilla): the observer + styles live in
+     src/lib/site.ts and src/styles/global.css — no framework island. -->
+<div
+  class:list={['reveal', className]}
+  style={`--reveal-delay: ${delay}s; --reveal-y: ${y}px`}
+>
+  <slot />
+</div>

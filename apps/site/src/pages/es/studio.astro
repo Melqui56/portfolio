@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Studio from '../../components/sections/Studio.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+const lang = 'es' as const;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<BaseLayout title="MQE Studios" description={t('studio.lead')} lang={lang}>
+  <Studio lang={lang} />
+</BaseLayout>

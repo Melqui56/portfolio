@@ -1,0 +1,51 @@
+---
+import PageHeader from '../PageHeader.astro';
+import { getCollection } from 'astro:content';
+import { ui, defaultLang } from '../../i18n/ui';
+import { localisePath } from '../../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const posts = (await getCollection('posts'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<section class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+  <PageHeader section="journal" lang={lang} title={t('journal.title')} lead={t('journal.lead')} />
+
+  {
+    posts.length === 0 ? (
+      <p class="font-mono text-sm text-ink-500 border border-dashed border-ink-700 rounded-lg p-10 text-center">
+        ⚓ {t('journal.empty')}
+      </p>
+    ) : (
+      <div class="space-y-4">
+        {posts.map((post) => (
+          <a
+            href={localisePath(`/journal/${post.id}`, lang)}
+            class="glass rounded-lg p-6 block hover:border-blood-moon/40 transition-colors group"
+          >
+            <div class="font-mono text-xs text-ink-500">{post.data.date.toLocaleDateString(lang)}</div>
+            <h2 class="mt-2 font-semibold text-lg text-ink-100 group-hover:text-blood-moon transition-colors">
+              {post.data.title}
+            </h2>
+            <p class="mt-2 text-sm text-ink-300">{post.data.description}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              {post.data.tags.map((tag) => (
+                <span class="font-mono text-[0.7rem] px-2 py-0.5 rounded border border-ink-700 text-ink-500">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    )
+  }
+</section>

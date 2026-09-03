@@ -1,0 +1,22 @@
+---
+import { getSection } from '../i18n/sections';
+import type { ui } from '../i18n/ui';
+
+interface Props {
+  /** Section key from src/i18n/sections.ts — drives the number and codename. */
+  section: string;
+  lang: keyof typeof ui;
+  title: string;
+  lead?: string;
+}
+
+const { section, lang, title, lead } = Astro.props;
+const { n, code } = getSection(section);
+---
+
+<header class="mb-14">
+  <p class="eyebrow"><span class="text-blood-moon">◆</span> {n} — {code[lang]}</p>
+  <h1 class="mt-3 text-4xl md:text-5xl font-bold tracking-tight">{title}</h1>
+  <div class="rule-chart w-32 mt-6" aria-hidden="true"></div>
+  {lead && <p class="mt-6 max-w-2xl text-lg text-ink-300 leading-relaxed">{lead}</p>}
+</header>

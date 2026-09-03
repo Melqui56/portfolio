@@ -1,0 +1,35 @@
+# Personal documentation and private context (not published)
+docs/private/
+
+# Dependencies
+node_modules/
+.bun/
+
+# Builds and artifacts
+dist/
+build/
+.astro/
+apps/site/dist/
+
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+
+# Go
+bin/
+*.exe
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Docker volumes (local dev)
+deploy/data/
+deploy/pgdata/

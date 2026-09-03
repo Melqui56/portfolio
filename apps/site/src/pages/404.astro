@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLangFromUrl } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const es = lang === 'es';
+const title = es ? 'Rumbo perdido' : 'Off the chart';
+const body = es
+  ? 'Esta página no está en la carta de navegación.'
+  : 'This page is not on the navigation chart.';
+const home = es ? '/es' : '/';
+---
+
+<BaseLayout title={title} description={body} lang={lang}>
+  <section class="mx-auto max-w-3xl px-6 py-32 text-center">
+    <p class="eyebrow"><span class="text-blood-moon">◆</span> 404</p>
+    <h1 class="mt-4 text-4xl md:text-5xl font-bold tracking-tight text-ink-100">{title}</h1>
+    <p class="mt-5 text-lg text-ink-300">{body}</p>
+    <a
+      href={home}
+      class="mt-9 inline-block px-7 py-3.5 rounded font-mono text-sm font-semibold bg-blood-moon text-abyss-950 hover:bg-vampire-300 transition-colors"
+    >
+      {es ? 'Volver al puerto' : 'Back to port'} →
+    </a>
+  </section>
+</BaseLayout>

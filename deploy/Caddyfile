@@ -1,0 +1,30 @@
+# MQE local Caddyfile
+# Mirrors production topology: static site + API behind one reverse proxy.
+# Domain is a variable — replace mqe.test with your dev domain or use localhost.
+
+# Static site (Astro build output) served directly by Caddy.
+# Dev: run `make dev` in apps/site and point caddy at :4321 instead.
+{
+	auto_https off
+}
+
+:8080 {
+	root * /srv/site
+	file_server
+
+	handle /api/* {
+		reverse_proxy host.docker.internal:8081
+	}
+
+	handle /game/* {
+		reverse_proxy host.docker.internal:8082
+	}
+
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

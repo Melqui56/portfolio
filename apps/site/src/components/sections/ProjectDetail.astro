@@ -1,0 +1,100 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { ui, defaultLang } from '../../i18n/ui';
+import { localisePath } from '../../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+  project: CollectionEntry<'projects'>;
+}
+
+const { lang, project } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+const { Content } = await render(project);
+
+/** The case-study spine from docs/CONTENT.md, in reading order. */
+const caseSections = [
+  { icon: '◈', key: 'context' },
+  { icon: '✦', key: 'problem' },
+  { icon: '⚓', key: 'decisions' },
+  { icon: '⌬', key: 'architecture' },
+  { icon: '≈', key: 'iterations' },
+  { icon: '◆', key: 'results' },
+  { icon: '✧', key: 'lessons' },
+] as const;
+---
+
+<article class="mx-auto max-w-3xl px-6 py-20 md:py-24">
+  <a
+    href={localisePath('/projects', lang)}
+    class="font-mono text-sm text-ink-500 hover:text-blood-moon transition-colors"
+  >
+    ← {t('nav.projects')}
+  </a>
+
+  <header class="mt-6 mb-12">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="font-mono text-xs text-brass">{project.data.bounty ?? ''}</span>
+      <span class="font-mono text-xs text-ink-500">
+        {project.data.year.toLocaleDateString(lang, { year: 'numeric' })} · {project.data.category}
+      </span>
+    </div>
+
+    <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-ink-100">{project.data.title}</h1>
+    <div class="rule-chart w-32 mt-6" aria-hidden="true"></div>
+    <p class="mt-6 text-lg text-ink-300 leading-relaxed">{project.data.description}</p>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+      {
+        project.data.stack.map((s) => (
+          <span class="font-mono text-[0.7rem] px-2 py-0.5 rounded border border-ink-700 text-ink-500">{s}</span>
+        ))
+      }
+    </div>
+
+    <div class="mt-6 flex gap-5">
+      {
+        project.data.github && (
+          <a
+            href={project.data.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm font-mono text-blood-moon hover:text-vampire-300 transition-colors"
+          >
+            GitHub ↗
+          </a>
+        )
+      }
+      {
+        project.data.demo && (
+          <a
+            href={project.data.demo}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm font-mono text-brass hover:text-gold transition-colors"
+          >
+            {t('case.demo')} ↗
+          </a>
+        )
+      }
+    </div>
+  </header>
+
+  <nav class="mb-12 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label={t('case.sections')}>
+    {
+      caseSections.map((s) => (
+        <a
+          href={`#${s.key}`}
+          class="glass rounded px-3 py-2 text-xs font-mono text-ink-300 hover:text-blood-moon transition-colors"
+        >
+          <span aria-hidden="true">{s.icon}</span> {t(`case.${s.key}`)}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="prose max-w-none text-ink-300 leading-relaxed">
+    <Content />
+  </div>
+</article>

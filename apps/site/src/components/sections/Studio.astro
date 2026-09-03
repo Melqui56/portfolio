@@ -1,0 +1,98 @@
+---
+import PageHeader from '../PageHeader.astro';
+import ContactForm from '../ContactForm.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+import { localisePath } from '../../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const services = [
+  {
+    icon: '⚙',
+    title: t('studio.svc1.title'),
+    items: ['Architecture & ADRs', 'APIs (Go / Gin)', 'Full-stack web (Astro / TS)', 'PostgreSQL, sqlc', 'CI/CD & DevOps'],
+  },
+  {
+    icon: '🎮',
+    title: t('studio.svc2.title'),
+    items: ['Game design & development', 'Engines (C++ / C# / Lua)', 'Prototyping & game feel', 'WebGL / Canvas experiences', 'Interactive portfolios'],
+  },
+  {
+    icon: '🧭',
+    title: t('studio.svc3.title'),
+    items: ['Spec-driven development', 'Roadmap & prioritisation', 'Decision records', 'Post-mortems', 'Project management'],
+  },
+];
+
+const letters = [
+  { letter: 'M', word: 'Master', body: t('studio.m'), tone: 'text-blood-moon' },
+  { letter: 'Q', word: 'Quality', body: t('studio.q'), tone: 'text-brass' },
+  { letter: 'E', word: 'Expedition', body: t('studio.e'), tone: 'text-ink-100' },
+];
+---
+
+<section class="mx-auto max-w-6xl px-6 py-20 md:py-24">
+  <PageHeader
+    section="studio"
+    lang={lang}
+    title="MQE Studios"
+    lead={t('studio.lead')}
+  />
+
+  <h2 class="eyebrow mb-6">{t('studio.services')}</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+    {
+      services.map((s) => (
+        <div class="glass rounded-lg p-6 hover:border-blood-moon/40 transition-colors">
+          <div class="text-2xl mb-3" aria-hidden="true">{s.icon}</div>
+          <h3 class="font-semibold text-lg text-ink-100">{s.title}</h3>
+          <ul class="mt-4 space-y-2">
+            {s.items.map((item) => (
+              <li class="text-sm text-ink-300 flex items-start gap-2">
+                <span class="text-blood-moon mt-0.5" aria-hidden="true">›</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+
+  <!-- M / Q / E breakdown -->
+  <div class="glass rounded-lg p-8 mb-16">
+    <h2 class="eyebrow mb-8">{t('studio.name')}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {
+        letters.map((x) => (
+          <div>
+            <span class={`font-mono text-4xl font-bold ${x.tone}`}>{x.letter}</span>
+            <p class="mt-2 font-semibold text-ink-100">{x.word}</p>
+            <p class="mt-1 text-sm text-ink-300 leading-relaxed">{x.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="text-center mb-14">
+    <p class="text-lg text-ink-300 mb-6">{t('studio.ctaLead')}</p>
+    <a
+      href={localisePath('/contact', lang)}
+      class="inline-block px-8 py-3.5 rounded font-mono text-sm font-semibold bg-brass text-abyss-950 hover:bg-gold transition-colors"
+    >
+      {t('studio.cta')} →
+    </a>
+  </div>
+
+  <div class="glass rounded-lg p-8 max-w-xl mx-auto">
+    <h2 class="font-mono text-sm text-brass mb-2">{t('studio.inquiry')}</h2>
+    <p class="text-ink-300 mb-6">{t('studio.inquiryLead')}</p>
+    <ContactForm type="inquiry" locale={lang} sourcePage="/studio" showService />
+  </div>
+</section>

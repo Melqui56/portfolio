@@ -1,0 +1,25 @@
+---
+import { ui, defaultLang } from '../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-ink-700/40">
+  <div class="mx-auto max-w-6xl px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span class="font-mono text-sm font-bold"><span class="text-blood-moon">M</span><span class="text-brass">Q</span><span class="text-ink-100">E</span></span>
+      <span class="text-ink-500 text-sm">© {year} {t('footer.rights')}</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="https://github.com/Melqui56" target="_blank" rel="noopener noreferrer" class="text-sm text-ink-300 hover:text-blood-moon transition-colors font-mono">GitHub</a>
+      <a href="https://www.linkedin.com/in/melquisedec-casallas" target="_blank" rel="noopener noreferrer" class="text-sm text-ink-300 hover:text-blood-moon transition-colors font-mono">LinkedIn</a>
+      <a href="mailto:mc16casallas@gmail.com" class="text-sm text-ink-300 hover:text-blood-moon transition-colors font-mono">Email</a>
+    </div>
+  </div>
+</footer>

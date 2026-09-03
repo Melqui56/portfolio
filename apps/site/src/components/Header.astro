@@ -1,0 +1,131 @@
+---
+import { ui, languages, defaultLang } from '../i18n/ui';
+import { localisePath } from '../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const navItems: Array<{ href: string; label: keyof typeof ui[typeof defaultLang] }> = [
+  { href: '/', label: 'nav.home' },
+  { href: '/about', label: 'nav.about' },
+  { href: '/projects', label: 'nav.projects' },
+  { href: '/stack', label: 'nav.stack' },
+  { href: '/roadmap', label: 'nav.roadmap' },
+  { href: '/journal', label: 'nav.journal' },
+  { href: '/studio', label: 'nav.studio' },
+  { href: '/contact', label: 'nav.contact' },
+];
+
+const currentPath = Astro.url.pathname.replace(/^\/(es|en)(?=\/|$)/, '') || '/';
+const otherLang = lang === 'es' ? 'en' : 'es';
+const otherPath = otherLang === 'en' ? currentPath : `/es${currentPath === '/' ? '' : currentPath}`;
+
+/** Nav hrefs are language-neutral; compare against the prefix-stripped path. */
+const isActive = (href: string) =>
+  currentPath.replace(/\/$/, '') === href.replace(/\/$/, '') ||
+  (href !== '/' && currentPath.startsWith(`${href}/`));
+
+/** Nav hrefs are language-neutral; localise them at render time. */
+const localise = (href: string) => localisePath(href, lang);
+const menuLabel = t('nav.menu');
+---
+
+<header class="glass sticky top-0 z-50 border-x-0 border-t-0">
+  <nav class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between" aria-label="Main navigation">
+    <a href={localise('/')} class="flex items-center gap-2 group" aria-label="MQE — Home">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true" class="text-blood-moon">
+        <path d="M4 6h24M8 6v20M24 6v20M4 26h24M8 10h4M20 10h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="2" />
+      </svg>
+      <span class="font-mono font-bold tracking-tight">
+        <span class="text-blood-moon">M</span><span class="text-brass">Q</span><span class="text-ink-100">E</span>
+      </span>
+    </a>
+
+    <div class="flex items-center gap-6">
+      <ul class="hidden lg:flex items-center gap-5">
+        {
+          navItems.map((item) => (
+            <li>
+              <a
+                href={localise(item.href)}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class:list={[
+                  'text-sm transition-colors font-mono hover:text-blood-moon',
+                  isActive(item.href) ? 'text-blood-moon text-glow-blood' : 'text-ink-300',
+                ]}
+              >
+                {t(item.label)}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <a
+        href={otherPath}
+        class="text-xs font-mono px-3 py-1.5 rounded border border-ink-700 text-ink-300 hover:border-blood-moon hover:text-blood-moon transition-colors"
+        aria-label={`Switch language to ${languages[otherLang]}`}
+      >
+        {languages[otherLang]}
+      </a>
+
+      <details class="lg:hidden relative" id="mobile-nav">
+        <summary
+          class="list-none cursor-pointer font-mono text-xs px-3 py-1.5 rounded border border-ink-700 text-ink-300 hover:border-blood-moon hover:text-blood-moon transition-colors"
+          aria-label={menuLabel}
+        >
+          {menuLabel}
+        </summary>
+        <ul
+          class="absolute right-0 top-full mt-2 w-52 glass rounded-lg p-2 shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
+        >
+          {
+            navItems.map((item) => (
+              <li>
+                <a
+                  href={localise(item.href)}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  class:list={[
+                    'block px-3 py-2 rounded font-mono text-sm transition-colors hover:bg-abyss-800 hover:text-blood-moon',
+                    isActive(item.href) ? 'text-blood-moon' : 'text-ink-300',
+                  ]}
+                >
+                  {t(item.label)}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </details>
+    </div>
+  </nav>
+</header>
+
+<style>
+  /* Hide the default disclosure triangle across engines. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+</style>
+
+<script>
+  // Delegated so it keeps working after the header is re-rendered by view transitions.
+  const currentNav = () => document.getElementById('mobile-nav') as HTMLDetailsElement | null;
+
+  document.addEventListener('click', (e) => {
+    const nav = currentNav();
+    if (nav?.open && !nav.contains(e.target as Node)) nav.open = false;
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const nav = currentNav();
+      if (nav) nav.open = false;
+    }
+  });
+</script>

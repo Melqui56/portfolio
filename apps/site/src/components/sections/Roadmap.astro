@@ -1,0 +1,63 @@
+---
+import PageHeader from '../PageHeader.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const stateLabel: Record<string, string> = {
+  done: t('learning.done'),
+  current: t('learning.progress'),
+  future: t('learning.planned'),
+};
+
+const stateTone: Record<string, string> = {
+  done: 'text-brass border-brass/40',
+  current: 'text-blood-moon border-blood-moon/40',
+  future: 'text-ink-500 border-ink-700',
+};
+
+const dotTone: Record<string, string> = {
+  done: 'border-brass bg-abyss-950',
+  current: 'border-blood-moon bg-blood-moon shadow-[0_0_12px_rgba(255,42,109,0.5)]',
+  future: 'border-ink-700 bg-abyss-950',
+};
+
+const milestones = [
+  { year: '2019 — 2024', label: t('learning.se'), state: 'done' },
+  { year: '2025 —', label: t('learning.ai'), state: 'current' },
+  { year: '2025 —', label: t('learning.game'), state: 'current' },
+  { year: '2025 —', label: t('learning.design'), state: 'current' },
+  { year: '—', label: t('learning.mba'), state: 'future' },
+];
+---
+
+<section class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+  <PageHeader section="roadmap" lang={lang} title={t('roadmap.title')} lead={t('roadmap.lead')} />
+
+  <ol class="relative border-l border-ink-700/60 ml-3 space-y-9">
+    {
+      milestones.map((m) => (
+        <li class="ml-7 relative">
+          <span
+            class={`absolute -left-[2.2rem] top-1.5 h-3.5 w-3.5 rounded-full border-2 ${dotTone[m.state]}`}
+            aria-hidden="true"
+          />
+          <div class="font-mono text-xs text-ink-500">{m.year}</div>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            <h2 class="font-semibold text-ink-100">{m.label}</h2>
+            <span
+              class={`font-mono text-[0.7rem] uppercase tracking-wider px-2 py-0.5 rounded border ${stateTone[m.state]}`}
+            >
+              {stateLabel[m.state]}
+            </span>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>

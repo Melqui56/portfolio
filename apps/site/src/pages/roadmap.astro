@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Roadmap from '../components/sections/Roadmap.astro';
+import { ui, getLangFromUrl, defaultLang } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<BaseLayout title={t('roadmap.title')} description={t('roadmap.lead')} lang={lang}>
+  <Roadmap lang={lang} />
+</BaseLayout>

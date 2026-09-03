@@ -1,0 +1,4 @@
+# Generated code (sqlc)
+# internal/store/*.go is generated but committed for reproducibility (see docs)
+# Generated swagger docs
+docs/

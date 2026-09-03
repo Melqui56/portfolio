@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DeckPage from '../components/DeckPage.astro';
+import { ui, getLangFromUrl, defaultLang } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<BaseLayout title="Melqui Casallas — Software Engineer" description={t('hero.tagline')} lang={lang}>
+  <DeckPage lang={lang} />
+</BaseLayout>

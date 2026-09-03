@@ -1,0 +1,40 @@
+---
+import Reveal from './Reveal.astro';
+import { ui, defaultLang } from '../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const manifesto = [
+  { n: '01', title: t('manifesto.p1.title'), body: t('manifesto.p1.body'), accent: 'text-blood-moon' },
+  { n: '02', title: t('manifesto.p2.title'), body: t('manifesto.p2.body'), accent: 'text-brass' },
+  { n: '03', title: t('manifesto.p3.title'), body: t('manifesto.p3.body'), accent: 'text-blood-moon' },
+  { n: '04', title: t('manifesto.p4.title'), body: t('manifesto.p4.body'), accent: 'text-neon-cyan' },
+];
+---
+
+<section class="mx-auto max-w-6xl px-6 py-20 md:py-28">
+  <Reveal>
+    <p class="eyebrow"><span class="text-blood-moon">◆</span> {t('manifesto.eyebrow')}</p>
+    <h2 class="mt-3 text-3xl md:text-5xl font-bold tracking-tight">{t('manifesto.title')}</h2>
+    <p class="mt-5 max-w-2xl text-lg text-ink-300">{t('manifesto.lead')}</p>
+  </Reveal>
+
+  <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-px bg-ink-700/30 rounded-lg overflow-hidden">
+    {
+      manifesto.map((m, i) => (
+        <Reveal delay={i * 0.08}>
+          <article class="h-full bg-abyss-900/70 p-8 md:p-10 hover:bg-abyss-800/70 transition-colors">
+            <span class={`font-mono text-xs ${m.accent}`}>{m.n}</span>
+            <h3 class="mt-3 text-xl font-semibold text-ink-100">{m.title}</h3>
+            <p class="mt-3 text-ink-300 leading-relaxed">{m.body}</p>
+          </article>
+        </Reveal>
+      ))
+    }
+  </div>
+</section>

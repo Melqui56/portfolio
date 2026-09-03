@@ -1,0 +1,41 @@
+# Local development infrastructure — idempotent with Docker/Podman
+# Usage: make up | make down | make logs
+name: mqe-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mqe-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mqe
+      POSTGRES_PASSWORD: mqe_dev_password
+      POSTGRES_DB: mqe
+    ports:
+      - "5432:5432"
+    volumes:
+      - mqe-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mqe"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Local reverse proxy — mirrors production topology
+  caddy:
+    image: caddy:2-alpine
+    container_name: mqe-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - mqe-caddy-data:/data
+      - mqe-caddy-config:/config
+
+volumes:
+  mqe-pgdata:
+  mqe-caddy-data:
+  mqe-caddy-config:

@@ -1,0 +1,143 @@
+---
+interface Props {
+  type: 'contact' | 'inquiry';
+  locale: 'en' | 'es';
+  sourcePage: string;
+  showService?: boolean;
+}
+
+const { type, locale, sourcePage, showService = false } = Astro.props;
+const es = locale === 'es';
+
+const label = {
+  name: es ? 'Nombre' : 'Name',
+  email: 'Email',
+  company: es ? 'Empresa (opcional)' : 'Company (optional)',
+  service: es ? 'Servicio' : 'Service',
+  message: es ? 'Mensaje' : 'Message',
+  submit: es ? 'Enviar señal' : 'Send signal',
+  sending: es ? 'Enviando...' : 'Sending...',
+  success: es
+    ? '⚓ Señal recibida. Gracias — responderé pronto.'
+    : '⚓ Signal received. Thank you — I will reply soon.',
+  error: es ? 'Error al enviar. Intenta de nuevo.' : 'Failed to send. Try again.',
+  namePlaceholder: es ? 'Tu nombre' : 'Your name',
+  companyPlaceholder: es ? 'Tu empresa' : 'Your company',
+  messagePlaceholder: es
+    ? 'Cuéntame sobre tu idea, proyecto o expedición...'
+    : 'Tell me about your idea, project, or expedition...',
+};
+---
+
+<!-- Vanilla contact form: submission handled by the delegated listener in
+     src/lib/site.ts. Labels render server-side, per locale. -->
+<form
+  data-contact-form
+  data-type={type}
+  data-locale={locale}
+  data-source-page={sourcePage}
+  class="space-y-5 text-left"
+  novalidate
+>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <label for={`${type}-name`} class="block text-sm font-mono text-ink-300 mb-1.5">
+        {label.name} <span class="text-blood-moon">*</span>
+      </label>
+      <input
+        id={`${type}-name`}
+        name="name"
+        required
+        minlength={2}
+        maxlength={100}
+        placeholder={label.namePlaceholder}
+        class="w-full px-4 py-2.5 rounded bg-abyss-900 border border-ink-700 text-ink-100 placeholder:text-ink-700 focus:border-neon-cyan focus:outline-none transition-colors"
+      />
+    </div>
+    <div>
+      <label for={`${type}-email`} class="block text-sm font-mono text-ink-300 mb-1.5">
+        {label.email} <span class="text-blood-moon">*</span>
+      </label>
+      <input
+        id={`${type}-email`}
+        name="email"
+        type="email"
+        required
+        maxlength={200}
+        placeholder="you@example.com"
+        class="w-full px-4 py-2.5 rounded bg-abyss-900 border border-ink-700 text-ink-100 placeholder:text-ink-700 focus:border-neon-cyan focus:outline-none transition-colors"
+      />
+    </div>
+  </div>
+
+  {
+    type === 'inquiry' && (
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label for="inquiry-company" class="block text-sm font-mono text-ink-300 mb-1.5">
+            {label.company}
+          </label>
+          <input
+            id="inquiry-company"
+            name="company"
+            maxlength={100}
+            placeholder={label.companyPlaceholder}
+            class="w-full px-4 py-2.5 rounded bg-abyss-900 border border-ink-700 text-ink-100 placeholder:text-ink-700 focus:border-neon-cyan focus:outline-none transition-colors"
+          />
+        </div>
+        {
+          showService && (
+            <div>
+              <label for="inquiry-service" class="block text-sm font-mono text-ink-300 mb-1.5">
+                {label.service}
+              </label>
+              <select
+                id="inquiry-service"
+                name="service"
+                class="w-full px-4 py-2.5 rounded bg-abyss-900 border border-ink-700 text-ink-100 focus:border-neon-cyan focus:outline-none transition-colors"
+              >
+                <option value="">—</option>
+                <option value="software">{es ? 'Ingeniería de software' : 'Software engineering'}</option>
+                <option value="game-dev">{es ? 'Desarrollo de videojuegos' : 'Game development'}</option>
+                <option value="web">{es ? 'Web full-stack' : 'Full-stack web'}</option>
+                <option value="consulting">{es ? 'Consultoría' : 'Consulting'}</option>
+              </select>
+            </div>
+          )
+        }
+      </div>
+    )
+  }
+
+  <div>
+    <label for={`${type}-message`} class="block text-sm font-mono text-ink-300 mb-1.5">
+      {label.message} <span class="text-blood-moon">*</span>
+    </label>
+    <textarea
+      id={`${type}-message`}
+      name="message"
+      required
+      minlength={10}
+      maxlength={5000}
+      rows={5}
+      placeholder={label.messagePlaceholder}
+      class="w-full px-4 py-2.5 rounded bg-abyss-900 border border-ink-700 text-ink-100 placeholder:text-ink-700 focus:border-neon-cyan focus:outline-none transition-colors resize-y"
+    ></textarea>
+  </div>
+
+  <button
+    type="submit"
+    data-submit
+    data-sending={label.sending}
+    class="w-full px-6 py-3 rounded font-mono text-sm font-semibold bg-blood-moon text-abyss-950 hover:bg-neon-green transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {label.submit}
+  </button>
+
+  <p data-status class="hidden text-sm text-neon-green font-mono" role="status">
+    {label.success}
+  </p>
+  <p data-status-error class="hidden text-sm text-blood-moon font-mono" role="alert">
+    {label.error}<span data-error-detail></span>
+  </p>
+</form>

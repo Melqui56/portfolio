@@ -1,0 +1,42 @@
+---
+import PageHeader from '../PageHeader.astro';
+import ContactForm from '../ContactForm.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const links = [
+  { label: 'GitHub', href: 'https://github.com/Melqui56' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/melquisedec-casallas' },
+  { label: 'Email', href: 'mailto:mc16casallas@gmail.com' },
+];
+---
+
+<section class="mx-auto max-w-2xl px-6 py-20 md:py-24">
+  <PageHeader section="contact" lang={lang} title={t('contact.title')} lead={t('contact.pageLead')} />
+
+  <div class="glass rounded-lg p-8">
+    <h2 class="font-mono text-sm text-blood-moon mb-6">{t('contact.formTitle')}</h2>
+    <ContactForm type="contact" locale={lang} sourcePage="/contact" />
+  </div>
+
+  <div class="mt-10 flex flex-wrap gap-3">
+    {
+      links.map((link) => (
+        <a
+          href={link.href}
+          target={link.label === 'Email' ? undefined : '_blank'}
+          rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
+          class="px-5 py-2.5 rounded font-mono text-sm border border-ink-700 text-ink-300 hover:border-blood-moon hover:text-blood-moon transition-colors"
+        >
+          {link.label} ↗
+        </a>
+      ))
+    }
+  </div>
+</section>

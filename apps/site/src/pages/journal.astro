@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Journal from '../components/sections/Journal.astro';
+import { ui, getLangFromUrl, defaultLang } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<BaseLayout title={t('journal.title')} description={t('journal.lead')} lang={lang}>
+  <Journal lang={lang} />
+</BaseLayout>

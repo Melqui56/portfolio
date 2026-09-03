@@ -1,0 +1,41 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { ui, defaultLang } from '../../i18n/ui';
+import { localisePath } from '../../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+  post: CollectionEntry<'posts'>;
+}
+
+const { lang, post } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+const { Content } = await render(post);
+---
+
+<article class="mx-auto max-w-3xl px-6 py-20 md:py-24">
+  <a
+    href={localisePath('/journal', lang)}
+    class="font-mono text-sm text-ink-500 hover:text-blood-moon transition-colors"
+  >
+    ← {t('nav.journal')}
+  </a>
+
+  <header class="mt-6 mb-10">
+    <div class="font-mono text-xs text-ink-500 mb-3">{post.data.date.toLocaleDateString(lang)}</div>
+    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-ink-100">{post.data.title}</h1>
+    <div class="rule-chart w-32 mt-6" aria-hidden="true"></div>
+    <div class="mt-6 flex flex-wrap gap-2">
+      {
+        post.data.tags.map((tag) => (
+          <span class="font-mono text-[0.7rem] px-2 py-0.5 rounded border border-ink-700 text-ink-500">{tag}</span>
+        ))
+      }
+    </div>
+  </header>
+
+  <div class="prose max-w-none text-ink-300 leading-relaxed">
+    <Content />
+  </div>
+</article>

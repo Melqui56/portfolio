@@ -1,0 +1,20 @@
+---
+interface Props {
+  className?: string;
+  glitch?: boolean;
+}
+
+const { className = '', glitch = false } = Astro.props;
+---
+
+<!-- Tilt-on-hover wrapper (vanilla): pointer handling lives in src/lib/site.ts. -->
+<div
+  data-poster3d
+  class:list={[
+    'poster3d transition-transform duration-200 ease-out will-change-transform',
+    { 'poster-glitch': glitch },
+    className,
+  ]}
+>
+  <slot />
+</div>

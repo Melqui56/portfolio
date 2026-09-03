@@ -1,0 +1,31 @@
+{
+  "name": "site",
+  "version": "0.0.1",
+  "dependencies": {
+    "@astrojs/mdx": "^8.0.0",
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.10",
+    "pixi.js": "^8.20.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "cf:preview": "astro build && wrangler dev",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4.128.0"
+  }
+}

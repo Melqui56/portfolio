@@ -1,0 +1,53 @@
+---
+interface Props {
+  className?: string;
+  /** Shown on the brand plate when the ship is hovered. */
+  label?: string;
+}
+
+const { className = '', label = 'MQE — MASTER QUALITY EXPEDITION' } = Astro.props;
+---
+
+<!-- Night-sea hero (vanilla): the Pixi scene mounts after browser idle so the
+     headline paints first; the CSS background carries the hero meanwhile. -->
+<div
+  data-ocean
+  data-label={label}
+  class:list={['ocean-bg pointer-events-none absolute inset-0 overflow-hidden', className]}
+  aria-hidden="true"
+></div>
+
+<script>
+  import { mountOcean } from './ocean/OceanBackground';
+  let active: (() => void) | null = null;
+  let initial = true;
+
+  function mountIfPresent() {
+    const host = document.querySelector<HTMLElement>('[data-ocean]');
+    if (!host || active) return;
+    active = mountOcean(host, host.dataset.label ?? 'MQE — MASTER QUALITY EXPEDITION');
+  }
+
+  function unmount() {
+    if (active) {
+      active();
+      active = null;
+    }
+  }
+
+  // View transitions replace the DOM; tear the scene down before the swap and
+  // rebuild it on the way back. The very first load mounts after idle below.
+  document.addEventListener('astro:before-swap', unmount);
+  document.addEventListener('astro:page-load', () => {
+    if (!initial) mountIfPresent();
+  });
+
+  // Defer the first mount: pixi.js is the heaviest module on the page and the
+  // headline is the LCP — let the browser settle first.
+  const run = () => {
+    initial = false;
+    mountIfPresent();
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1500 });
+  else setTimeout(run, 250);
+</script>

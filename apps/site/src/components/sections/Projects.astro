@@ -1,0 +1,119 @@
+---
+import PageHeader from '../PageHeader.astro';
+import Poster3D from '../Poster3D.astro';
+import { getCollection } from 'astro:content';
+import { ui, defaultLang } from '../../i18n/ui';
+import { localisePath } from '../../i18n/sections';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+/** Only offer filters that actually match a project. */
+const used = new Set(projects.map((p) => p.data.category));
+const categories = ['all', ...['software', 'gamedev', 'ai', 'web', 'design'].filter((c) => used.has(c))];
+
+const statusColor: Record<string, string> = {
+  active: 'text-neon-green border-neon-green/40',
+  paused: 'text-brass border-brass/40',
+  completed: 'text-blood-moon border-blood-moon/40',
+};
+---
+
+<section class="mx-auto max-w-6xl px-6 py-20 md:py-24">
+  <PageHeader section="projects" lang={lang} title={t('projects.title')} lead={t('projects.lead')} />
+
+  {
+    projects.length === 0 ? (
+      <p class="font-mono text-sm text-ink-500 border border-dashed border-ink-700 rounded-lg p-10 text-center">
+        {t('projects.empty')}
+      </p>
+    ) : (
+      <>
+        <div class="flex flex-wrap gap-2 mb-10" role="group" aria-label="Filter projects">
+          {categories.map((cat) => (
+            <button
+              type="button"
+              class="font-mono text-xs px-3 py-1.5 rounded border border-ink-700 text-ink-300 hover:border-blood-moon hover:text-blood-moon transition-colors"
+              data-filter={cat}
+              aria-pressed={cat === 'all' ? 'true' : 'false'}
+            >
+              {cat === 'all' ? t('projects.filterAll') : cat}
+            </button>
+          ))}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="posters-grid">
+          {projects.map((p) => (
+            <Poster3D glitch class="h-full">
+              <a
+                href={localisePath(`/projects/${p.id}`, lang)}
+                class="glass rounded-lg p-6 h-full flex flex-col hover:border-blood-moon/50 hover:shadow-[0_0_30px_rgba(255,42,109,0.15)] transition-all group relative overflow-hidden"
+                data-category={p.data.category}
+              >
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <span class="font-mono text-xs text-brass">{p.data.bounty ?? '—'}</span>
+                  <span class={`font-mono text-[0.7rem] px-2 py-0.5 rounded border whitespace-nowrap ${statusColor[p.data.status]}`}>
+                    {t(`project.status.${p.data.status}`)}
+                  </span>
+                </div>
+
+                <h2 class="font-semibold text-lg text-ink-100 group-hover:text-blood-moon transition-colors">
+                  {p.data.title}
+                </h2>
+                <p class="mt-2 text-sm text-ink-300 line-clamp-3">{p.data.description}</p>
+
+                <div class="mt-auto pt-5 flex flex-wrap gap-2">
+                  {p.data.stack.slice(0, 5).map((s) => (
+                    <span class="font-mono text-[0.7rem] px-2 py-0.5 rounded border border-ink-700 text-ink-500">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+
+                <div class="mt-3 font-mono text-xs text-ink-500">
+                  {p.data.year.toLocaleDateString(lang, { year: 'numeric' })}
+                </div>
+              </a>
+            </Poster3D>
+          ))}
+        </div>
+      </>
+    )
+  }
+</section>
+
+<script>
+  // Re-bound on every view transition, since the grid is replaced with the page.
+  function bindFilters() {
+    const grid = document.getElementById('posters-grid');
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    if (!grid) return;
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter;
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('border-blood-moon', on);
+          b.classList.toggle('text-blood-moon', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+        grid.querySelectorAll<HTMLElement>('[data-category]').forEach((card) => {
+          const show = filter === 'all' || card.dataset.category === filter;
+          // Hide the poster wrapper, not just the link, so the grid reflows.
+          const cell = card.closest('[data-poster3d]') ?? card;
+          (cell as HTMLElement).style.display = show ? '' : 'none';
+        });
+      });
+    });
+  }
+
+  bindFilters();
+  document.addEventListener('astro:page-load', bindFilters);
+</script>

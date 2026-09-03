@@ -1,0 +1,45 @@
+---
+import PageHeader from '../PageHeader.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+
+const stack = [
+  { name: 'Go', role: 'API / services', level: 'production' },
+  { name: 'TypeScript', role: 'Frontend / full-stack', level: 'production' },
+  { name: 'C++', role: 'Game engines', level: 'production' },
+  { name: 'C#', role: 'Unity / .NET', level: 'production' },
+  { name: 'Lua', role: 'Game scripting (LÖVE)', level: 'production' },
+  { name: 'SQL', role: 'PostgreSQL', level: 'production' },
+  { name: 'Rust', role: 'Systems / game servers', level: 'learning' },
+];
+---
+
+<section class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+  <PageHeader section="stack" lang={lang} title={t('stack.title')} lead={t('stack.lead')} />
+
+  <ul class="space-y-3">
+    {
+      stack.map((item) => (
+        <li class="glass rounded-lg p-5 flex items-center justify-between gap-4 hover:border-blood-moon/40 transition-colors">
+          <div>
+            <h2 class="font-mono text-lg text-ink-100">{item.name}</h2>
+            <p class="text-sm text-ink-500">{item.role}</p>
+          </div>
+          <span
+            class={`font-mono text-[0.7rem] uppercase tracking-wider px-2 py-0.5 rounded border whitespace-nowrap ${
+              item.level === 'production' ? 'text-neon-green border-neon-green/40' : 'text-brass border-brass/40'
+            }`}
+          >
+            {item.level === 'production' ? t('stack.level.production') : t('stack.level.learning')}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</section>

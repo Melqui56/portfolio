@@ -1,0 +1,25 @@
+---
+import PageHeader from '../PageHeader.astro';
+import Manifesto from '../Manifesto.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+}
+
+const { lang } = Astro.props;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<section class="mx-auto max-w-3xl px-6 py-20 md:py-24">
+  <PageHeader section="about" lang={lang} title={t('about.title')} lead={t('about.lead')} />
+
+  <article class="space-y-6 text-ink-300 leading-relaxed text-lg">
+    <p>{t('about.p1')}</p>
+    <p>{t('about.p2')}</p>
+    <p class="font-serif italic text-2xl text-blood-moon text-glow-blood">{t('hero.tagline')}</p>
+    <p>{t('about.p3')}</p>
+  </article>
+</section>
+
+<Manifesto lang={lang} />

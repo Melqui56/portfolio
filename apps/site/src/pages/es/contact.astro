@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Contact from '../../components/sections/Contact.astro';
+import { ui, defaultLang } from '../../i18n/ui';
+
+const lang = 'es' as const;
+const t = (key: keyof typeof ui[typeof defaultLang]) => ui[lang][key] || ui[defaultLang][key];
+---
+
+<BaseLayout title={t('contact.title')} description={t('contact.pageLead')} lang={lang}>
+  <Contact lang={lang} />
+</BaseLayout>
