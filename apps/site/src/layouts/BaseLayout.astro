@@ -3,6 +3,8 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Maintenance from '../components/Maintenance.astro';
+import { MAINTENANCE_MODE } from '../lib/maintenance';
 import { getLangFromUrl } from '../i18n/ui';
 
 interface Props {
@@ -24,8 +26,17 @@ const defaultDescription =
   currentLang === 'es'
     ? 'Ingeniero de Software y desarrollador de videojuegos. MQE Studios.'
     : 'Software Engineer and Game Developer. MQE Studios.';
-const pageTitle = title.includes('MQE') ? title : `${title} — MQE`;
-const descriptionValue = description ?? defaultDescription;
+const maintenanceTitle = currentLang === 'es' ? 'MQE — En mantenimiento' : 'MQE — Under maintenance';
+const pageTitle = MAINTENANCE_MODE
+  ? maintenanceTitle
+  : title.includes('MQE')
+    ? title
+    : `${title} — MQE`;
+const descriptionValue = MAINTENANCE_MODE
+  ? (currentLang === 'es'
+      ? 'El sitio está en mantenimiento. Vuelve pronto.'
+      : 'The site is under maintenance. Coming back soon.')
+  : (description ?? defaultDescription);
 
 const localeMap = { en: 'en_US', es: 'es_ES' } as const;
 const ogLocale = localeMap[currentLang];
@@ -88,7 +99,7 @@ const schemaJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': 
     <meta name="title" content={pageTitle} />
     <meta name="description" content={descriptionValue} />
     <meta name="author" content={author} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={MAINTENANCE_MODE ? 'noindex, nofollow' : 'index, follow'} />
     <meta name="theme-color" content="#05070f" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonical.href} />
@@ -140,19 +151,27 @@ const schemaJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': 
     </script>
   </head>
   <body class="min-h-screen flex flex-col scanlines">
-    <!-- Scroll progress: scaleX driven by src/lib/site.ts -->
-    <div
-      id="scroll-progress"
-      class="fixed top-0 inset-x-0 h-0.5 origin-left z-[60] bg-gradient-to-r from-blood-moon via-brass to-neon-cyan"
-      style="transform: scaleX(0)"
-      aria-hidden="true"
-    ></div>
+    {
+      MAINTENANCE_MODE ? (
+        <Maintenance lang={currentLang} />
+      ) : (
+        <>
+          <!-- Scroll progress: scaleX driven by src/lib/site.ts -->
+          <div
+            id="scroll-progress"
+            class="fixed top-0 inset-x-0 h-0.5 origin-left z-[60] bg-gradient-to-r from-blood-moon via-brass to-neon-cyan"
+            style="transform: scaleX(0)"
+            aria-hidden="true"
+          ></div>
 
-    <Header lang={currentLang} />
-    <main class="flex-1">
-      <slot />
-    </main>
-    <Footer lang={currentLang} />
+          <Header lang={currentLang} />
+          <main class="flex-1">
+            <slot />
+          </main>
+          <Footer lang={currentLang} />
+        </>
+      )
+    }
 
     <script>
       import { initSite } from '../lib/site';

@@ -1,0 +1,49 @@
+---
+interface Props {
+  lang: 'en' | 'es';
+}
+
+const { lang } = Astro.props;
+const es = lang === 'es';
+---
+
+<!-- Full-screen maintenance shell, rendered instead of the site when
+     MAINTENANCE_MODE is true at build time. On-brand, no nav, noindex. -->
+<main class="relative min-h-screen flex items-center justify-center overflow-hidden">
+  <div class="absolute inset-0 ocean-bg" aria-hidden="true"></div>
+  <div
+    class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,rgba(255,42,109,0.18),transparent_60%)]"
+    aria-hidden="true"
+  ></div>
+
+  <div class="relative text-center px-6 py-24">
+    <p class="eyebrow">{es ? 'MQE — Master Quality Expedition' : 'MQE — Master Quality Expedition'}</p>
+
+    <div class="rule-chart w-24 mx-auto mt-6" aria-hidden="true"></div>
+
+    <h1 class="bleed-in mt-10 text-6xl md:text-8xl font-extrabold tracking-tight">
+      <span class="text-blood-moon">M</span><span class="text-brass">Q</span><span class="text-ink-100">E</span>
+    </h1>
+
+    <p class="mt-8 font-serif italic text-2xl md:text-3xl text-brass">
+      {es ? 'En mantenimiento — trazando la ruta.' : 'Under maintenance — charting the course.'}
+    </p>
+
+    <p class="mt-5 max-w-md mx-auto text-lg text-ink-300 leading-relaxed">
+      {es
+        ? 'El sitio vuelve pronto. Mientras tanto, escríbeme a:'
+        : 'The site will be back soon. Meanwhile, reach me at:'}
+    </p>
+
+    <a
+      href="mailto:mc16casallas@gmail.com"
+      class="mt-6 inline-block font-mono text-blood-moon hover:text-vampire-300 transition-colors"
+    >
+      mc16casallas@gmail.com
+    </a>
+
+    <p class="mt-16 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-ink-500">
+      {es ? 'Expedición en curso' : 'Expedition underway'}
+    </p>
+  </div>
+</main>

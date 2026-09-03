@@ -26,6 +26,9 @@ jobs:
         env:
           # Inlined into the client at build time (contact form endpoint).
           PUBLIC_API_URL: ${{ secrets.PUBLIC_API_URL != '' && secrets.PUBLIC_API_URL || 'https://api.mqestudios.com/api/v1' }}
+          # Toggle maintenance mode without touching code: set the repo VARIABLE
+          # MAINTENANCE_MODE to "true" to ship the maintenance page, "false" to go live.
+          MAINTENANCE_MODE: ${{ vars.MAINTENANCE_MODE }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
