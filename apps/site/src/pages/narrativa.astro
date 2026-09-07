@@ -1,151 +1,820 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const title = 'El artefacto del destino — Escena interactiva';
+const title = 'El artefacto del destino — Nodos entrelazados y línea de tiempo';
 const description =
-  'Escena ramificada narrativa en el universo de God of War 2. Una propuesta del ACA de Narrativas interactivas y creación de universos.';
+  'Tablero de nodos entrelazados (estilo Arcweave) y línea de tiempo de la escena ramificada en el universo de God of War 2. Propuesta del ACA de Narrativas interactivas y creación de universos.';
+
+// ---- GRAFO: nodos posicionados sobre un lienzo horizontal ----
+interface NodoDato {
+  k: string;
+  nombre: string;
+  tipo: string;
+  x: number;
+  y: number;
+  color: string;
+  grad: string;
+  dialogo: string;
+}
+interface Arista {
+  de: string;
+  a: string;
+  label: string;
+  color: string;
+  rama?: 'A' | 'B' | 'C' | 'X';
+}
+
+const W = 2760;
+const H = 1160;
+
+const nodos: NodoDato[] = [
+  { k: 'inicio', nombre: 'Inicio', tipo: 'CONTEXTO', x: 60, y: 360, color: 'border-neon-cyan', grad: 'from-cyan-900/60', dialogo: 'El templo derruido guarda un orbe que torce los Hilos del Destino.' },
+  { k: 'trato', nombre: 'Trato', tipo: 'DECISIÓN', x: 540, y: 360, color: 'border-gold', grad: 'from-yellow-800/50', dialogo: 'Helia ofrece el orbe: un recuerdo a cambio del poder.' },
+  { k: 'pacto', nombre: 'Pacto', tipo: 'RAMA A', x: 1020, y: 100, color: 'border-gold', grad: 'from-yellow-800/50', dialogo: 'Kratos acepta. El orbe zumba en sus manos.' },
+  { k: 'pregunta', nombre: 'Pregunta', tipo: 'RAMA B', x: 1020, y: 360, color: 'border-brass', grad: 'from-brass/40', dialogo: 'Kratos pregunta cuál recuerdo se pierde.' },
+  { k: 'negativa', nombre: 'Negativa', tipo: 'RAMA C', x: 1020, y: 620, color: 'border-neon-magenta', grad: 'from-magenta-800/50', dialogo: 'Kratos rehúsa. Asterión cierra la salida.' },
+  { k: 'advertencia', nombre: 'Advertencia', tipo: 'NUDO CLAVE', x: 1500, y: 100, color: 'border-ink-700', grad: 'from-ink-700/40', dialogo: 'Helia confiesa: el orbe desgasta a su portador.' },
+  { k: 'hilos', nombre: 'Los Hilos', tipo: 'NUDO CLAVE', x: 1500, y: 360, color: 'border-ink-700', grad: 'from-ink-700/40', dialogo: 'Se revela que el orbe reescribe un único hilo del destino.' },
+  { k: 'arrebato', nombre: 'Arrebato', tipo: 'NUDO CLAVE', x: 1500, y: 620, color: 'border-ink-700', grad: 'from-ink-700/40', dialogo: 'Kratos arrebata el orbe; la capa se raja.' },
+  { k: 'fuga', nombre: 'Fuga', tipo: 'NUDO CLAVE', x: 1500, y: 880, color: 'border-ink-700', grad: 'from-ink-700/40', dialogo: 'Abate a los guardias; el suelo cede bajo el peso.' },
+  { k: 'razon', nombre: 'La Razón', tipo: 'NUDO CLAVE', x: 1980, y: 620, color: 'border-ink-700', grad: 'from-ink-700/40', dialogo: 'Kratos explica su renuncia a Helia.' },
+  { k: 'encuentro', nombre: 'El Encuentro', tipo: 'CONVERGENCIA', x: 1980, y: 360, color: 'border-neon-cyan', grad: 'from-cyan-900/50', dialogo: 'Asterión exige el duelo sobre el altar.' },
+  { k: 'finalA', nombre: 'Final A', tipo: 'FIN · RECUERDO', x: 2460, y: 100, color: 'border-blood-moon', grad: 'from-vampire-700/50', dialogo: 'El recuerdo de su hija se pierde para siempre.' },
+  { k: 'finalB', nombre: 'Final B', tipo: 'FIN · ORBE ROTO', x: 2460, y: 360, color: 'border-brass', grad: 'from-brass/40', dialogo: 'El orbe se rompe y el destino queda sellado.' },
+  { k: 'finalC', nombre: 'Final C', tipo: 'FIN · RUIDA', x: 2460, y: 620, color: 'border-neon-magenta', grad: 'from-magenta-800/50', dialogo: 'El templo colapsa; Kratos conserva su identidad.' },
+];
+
+const aristas: Arista[] = [
+  { de: 'inicio', a: 'trato', label: 'Avanzar hacia la sacerdotisa', color: '#00e5ff', rama: 'X' },
+  { de: 'trato', a: 'pacto', label: 'A · Aceptar el precio', color: '#f1c40f', rama: 'A' },
+  { de: 'trato', a: 'pregunta', label: 'B · Preguntar el precio', color: '#d4af37', rama: 'B' },
+  { de: 'trato', a: 'negativa', label: 'C · Rechazar el artefacto', color: '#ff2a6d', rama: 'C' },
+  { de: 'pacto', a: 'finalA', label: 'A1 · Sellar el pacto', color: '#f1c40f', rama: 'A' },
+  { de: 'pacto', a: 'advertencia', label: 'A2 · Exigir la verdad', color: '#f1c40f', rama: 'A' },
+  { de: 'advertencia', a: 'hilos', label: '↺ Exigir la explicación completa', color: '#00e5ff', rama: 'X' },
+  { de: 'advertencia', a: 'finalA', label: 'Proseguir con el pacto', color: '#f1c40f', rama: 'A' },
+  { de: 'pregunta', a: 'hilos', label: 'B1 · Indagar sobre los Hilos', color: '#d4af37', rama: 'B' },
+  { de: 'pregunta', a: 'arrebato', label: 'B2 · Arrebatar el orbe', color: '#d4af37', rama: 'B' },
+  { de: 'hilos', a: 'finalB', label: 'Corregir un único hilo', color: '#d4af37', rama: 'B' },
+  { de: 'hilos', a: 'razon', label: '↺ El precio excede lo admisible', color: '#00e5ff', rama: 'X' },
+  { de: 'arrebato', a: 'pacto', label: '↺ Necesitar su poder de nuevo', color: '#00e5ff', rama: 'X' },
+  { de: 'arrebato', a: 'finalB', label: 'Conservar el orbe roto', color: '#d4af37', rama: 'B' },
+  { de: 'negativa', a: 'fuga', label: 'C1 · Abatir al guardián', color: '#ff2a6d', rama: 'C' },
+  { de: 'negativa', a: 'razon', label: 'C2 · Explicar la renuncia', color: '#ff2a6d', rama: 'C' },
+  { de: 'fuga', a: 'encuentro', label: 'La fuga cruza el altar', color: '#00e5ff', rama: 'X' },
+  { de: 'razon', a: 'encuentro', label: 'Asterión exige el duelo', color: '#ff2a6d', rama: 'C' },
+  { de: 'encuentro', a: 'finalA', label: 'Empuñar el orbe en pleno duelo', color: '#e01050', rama: 'X' },
+  { de: 'encuentro', a: 'finalB', label: 'Romper el orbe para sellar', color: '#d4af37', rama: 'X' },
+  { de: 'encuentro', a: 'finalC', label: 'Vencer y huir de la ruina', color: '#ff2a6d', rama: 'X' },
+  { de: 'finalA', a: 'inicio', label: 'REINICIO', color: '#3f4654', rama: 'X' },
+  { de: 'finalB', a: 'inicio', label: 'REINICIO', color: '#3f4654', rama: 'X' },
+  { de: 'finalC', a: 'inicio', label: 'REINICIO', color: '#3f4654', rama: 'X' },
+];
+
+const pos = (k: string) => {
+  const n = nodos.find((n) => n.k === k)!;
+  return { x: n.x + 120, y: n.y + 115 };
+};
+
+// ---- Línea de tiempo ampliada ----
+const lineasTiempo = [
+  { nivel: 'Acto', nombre: 'I · El precio del destino', detalle: 'God of War 2 · secuencia fan' },
+  { nivel: 'Secuencia', nombre: 'El templo costero', detalle: 'Encuentro, trato y duelo' },
+];
+
+const fichasEscena = [
+  { nombre: 'Escena 1 · INT. TEMPLO · NOCHE', detalle: 'Inicio → Trato', color: 'border-neon-cyan' },
+  { nombre: 'Escena 2 · Ramas A · B · C', detalle: 'Pacto · Pregunta · Negativa', color: 'border-gold' },
+  { nombre: 'Escena 3 · El Encuentro', detalle: 'Duelo → Finales A / B / C', color: 'border-neon-magenta' },
+];
+
+const puntosEscena = [
+  { nombre: 'Inicio', detalle: 'Contexto', nodo: 'inicio', color: 'bg-neon-cyan' },
+  { nombre: 'Trato', detalle: 'Decisión', nodo: 'trato', color: 'bg-gold' },
+  { nombre: 'Pacto', detalle: 'Rama A', nodo: 'pacto', color: 'bg-gold' },
+  { nombre: 'Pregunta', detalle: 'Rama B', nodo: 'pregunta', color: 'bg-brass' },
+  { nombre: 'Negativa', detalle: 'Rama C', nodo: 'negativa', color: 'bg-neon-magenta' },
+  { nombre: 'Encuentro', detalle: 'Convergencia', nodo: 'encuentro', color: 'bg-neon-cyan' },
+  { nombre: 'Final A', detalle: 'Recuerdo', nodo: 'finalA', color: 'bg-blood-moon' },
+  { nombre: 'Final B', detalle: 'Orbe roto', nodo: 'finalB', color: 'bg-brass' },
+  { nombre: 'Final C', detalle: 'Ruina', nodo: 'finalC', color: 'bg-neon-magenta' },
+];
+
+const escena3: [string, string][] = [
+  ['3', 'INT. TEMPLO COSTERO - NOCHE · EL DUELO', 'slug'],
+  ['Kratos y Asterión montan las espadas sobre el altar. Helia se aparta, el orbe tenue entre las manos. Las llamas suben por las columnas mientras ambos se miden en silencio.', 'accion'],
+  ['ASTERIÓN', 'personaje'],
+  ['(colocando la espada en guardia)', 'acot'],
+  ['El orbe elige a su guardián. No a su dueño.', 'dialogo'],
+  ['KRATOS', 'personaje'],
+  ['(empuñando las espadas del caos)', 'acot'],
+  ['El destino no eligió por mí. Ahora elijo yo.', 'dialogo'],
+  ['Kratos carga. El templo se agrieta y, con él, la fortuna de los dioses.', 'accion'],
+  ['FUNDE A NEGRO', 'transicion'],
+];
+
+const escenas = [
+  { nombre: 'Escena 1 · INT. TEMPLO · NOCHE', guion: [
+    ['1', 'INT. TEMPLO COSTERO - NOCHE', 'slug'],
+    ['Helia yace junto al altar del orbe; el polvo entra por los agujeros del techo. Kratos entra caminando, las láminas del vellocino brillando a la luz de las brasas.', 'accion'],
+    ['HELIA', 'personaje'], ['(incorporándose con esfuerzo)', 'acot'], ['El orbe ya no debe usarse, señor de la guerra. El destino cobra lo que presta.', 'dialogo'],
+    ['KRATOS', 'personaje'], ['(sin detenerse)', 'acot'], ['El destino me debe más a mí.', 'dialogo'],
+  ] },
+  { nombre: 'Escena 2 · RAMAS A · B · C', guion: [
+    ['2', 'INT. TEMPLO COSTERO - NOCHE (CONTINUO)', 'slug'],
+    ['Helia sostiene el orbe entre ambos y expone el precio: sacrificar un recuerdo que define a quien lo usa. Kratos elige su camino.', 'accion'],
+    ['HELIA', 'personaje'], ['(alcanzando el orbe)', 'acot'], ['Lo que pierdas, nadie lo recuperará. Ni siquiera tú.', 'dialogo'],
+    ['ASTERIÓN', 'personaje'], ['(avanzando, una mano sobre la espada)', 'acot'], ['Nadie sale del templo con eso. Ni un dios.', 'dialogo'],
+  ] },
+  { nombre: 'Escena 3 · EL ENCUENTRO · DUELO', guion: escena3 },
+];
+
+const claseGuion: Record<string, string> = {
+  slug: 'font-bold text-gold',
+  accion: 'text-ink-300',
+  personaje: 'mt-3 font-bold tracking-wider text-ink-100 uppercase',
+  acot: 'pl-5 text-ink-500 italic',
+  dialogo: 'pl-9 text-ink-100',
+  transicion: 'pt-3 text-right font-bold tracking-widest text-neon-cyan uppercase',
+};
+const espaciar: Record<string, string> = { slug: 'mt-4', accion: 'mt-3' };
+
+const ramaColor: Record<string, string> = { A: '#f1c40f', B: '#d4af37', C: '#ff2a6d', X: '#00e5ff' };
 ---
 
-<BaseLayout title={title} description={description} lang="es">
-  <main class="relative mx-auto max-w-3xl px-6 py-16">
-    <p class="mb-2 text-sm tracking-widest text-neon-cyan uppercase">Experimento narrativo</p>
-    <h1 class="mb-4 text-3xl font-bold text-ink-100 md:text-4xl">
-      El artefacto del destino
-    </h1>
-    <p class="mb-10 leading-relaxed text-ink-300">
-      Ciudad costera en ruinas, durante los acontecimientos de <em>God of War 2</em>.
-      Toma la decisión: cada camino tiene una consecuencia distinta.
+<BaseLayout title={title} description={description} lang="es" robots="noindex, nofollow">
+  <main class="mx-auto w-full max-w-[2200px] px-6 py-14 md:px-10">
+    <p class="mb-2 text-sm tracking-widest text-neon-cyan uppercase">Experimento narrativo · ACA 1</p>
+    <h1 class="mb-3 text-3xl font-bold text-ink-100 md:text-4xl">El artefacto del destino</h1>
+    <p class="max-w-2xl leading-relaxed text-ink-300">
+      Ciudad costera en ruinas, durante los acontecimientos de <em>God of War 2</em>. La historia
+      se expande en un <strong class="text-ink-100">grafo entrelazado</strong>: tres ramas
+      (A · pacto, B · pregunta, C · negativa) que se cruzan con sentido y convergen en un nudo
+      final. Organización tipo <strong class="text-ink-100">Arcweave</strong>
+      <br />+ <strong class="text-ink-100">línea de tiempo</strong> (acto, secuencia, escena).
+      Navega de forma horizontal.
     </p>
 
-    <section
-      id="escena"
-      class="rounded-2xl border border-ink-700 bg-abyss-900 p-6 shadow-lg md:p-8"
-    >
-      <div id="estado" class="mb-6 min-h-20 text-ink-100"></div>
+    <!-- CTA · Jugar -->
+    <div class="mb-8 mt-5 flex flex-wrap items-center gap-3">
+      <button type="button" id="btn-jugar"
+        class="group relative inline-flex items-center gap-2.5 rounded-xl border-2 border-neon-cyan bg-gradient-to-b from-neon-cyan/25 to-neon-cyan/5 px-5 py-3 font-bold text-neon-cyan shadow-lg transition hover:from-neon-cyan/40 hover:to-neon-cyan/15 hover:text-cyan-100"
+      >
+        <span class="relative inline-flex h-3 w-3">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon-cyan opacity-75" />
+          <span class="relative inline-flex h-3 w-3 rounded-full bg-neon-cyan" />
+        </span>
+        ▶ Jugar
+        <span class="rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-black tracking-widest text-abyss-950 uppercase">¡Juega la escena!</span>
+      </button>
+    </div>
 
-      <div id="opciones" class="flex flex-col gap-3"></div>
+    <!-- Pestañas -->
+    <div class="mb-6 flex gap-2 border-b border-ink-700 text-sm font-semibold">
+      <button type="button" id="tab-nodos"
+        class="tab-boton -mb-px rounded-t-lg border border-b-transparent border-ink-700 px-5 py-2.5 transition"
+      >▦ Nodos</button>
+      <button type="button" id="tab-tiempo"
+        class="tab-boton -mb-px rounded-t-lg border border-b-transparent border-ink-700 px-5 py-2.5 transition"
+      >▤ Línea de tiempo</button>
+    </div>
 
-      <div id="reiniciar" class="mt-8 hidden">
-        <button
-          type="button"
-          onclick="iniciarEscena()"
-          class="w-full rounded-lg border border-gold bg-transparent px-5 py-3 font-semibold text-gold transition hover:bg-gold hover:text-abyss-950"
-        >
-          ↺ Volver a empezar
-        </button>
+    <div class="overflow-hidden">
+      <div id="paneles" class="flex transition-transform duration-500 ease-out">
+
+        <!-- ============ PESTAÑA 1 · NODOS (tablero Arceweave) ============ -->
+        <section id="panel-nodos" class="w-full shrink-0 px-1 pb-2">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-500">
+            <span class="rounded-md border border-ink-700 bg-abyss-900 px-3 py-1.5 font-mono tracking-wide text-ink-400 uppercase">Editor · 14 nodos · 24 aristas</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-abyss-800 px-3 py-1"><span class="mr-1 inline-block h-2 w-2 rounded-full bg-[#f1c40f]" /> Rama A · pacto</span>
+              <span class="rounded-full bg-abyss-800 px-3 py-1"><span class="mr-1 inline-block h-2 w-2 rounded-full bg-[#d4af37]" /> Rama B · pregunta</span>
+              <span class="rounded-full bg-abyss-800 px-3 py-1"><span class="mr-1 inline-block h-2 w-2 rounded-full bg-[#ff2a6d]" /> Rama C · negativa</span>
+              <span class="rounded-full bg-abyss-800 px-3 py-1"><span class="mr-1 inline-block h-2 w-2 rounded-full bg-[#00e5ff]" /> Cruce entre ramas</span>
+            </div>
+          </div>
+
+          <div class="nodo-scroll overflow-x-auto pb-4">
+            <div class="nodo-board relative rounded-2xl border border-ink-700 bg-abyss-950/60" style={`min-width: ${W}px; height: ${H}px;`}>
+              <!-- Cables (SVG) -->
+              <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} class="absolute inset-0" aria-hidden="true">
+                {aristas.map((a) => {
+                  const d = pos(a.de);
+                  const t = pos(a.a);
+                  const mx = (d.x + t.x) / 2;
+                  const my = (d.y + t.y) / 2;
+                  const curva = Math.max(90, Math.abs(t.x - d.x) / 2.2 + (t.y - d.y) * 0.4);
+                  const dRama = a.rama === 'X' && a.label === 'REINICIO';
+                  return (
+                    <g key={`${a.de}-${a.a}`}>
+                      <path
+                        d={`M ${d.x} ${d.y} C ${d.x + curva} ${d.y}, ${t.x - curva} ${t.y}, ${t.x} ${t.y}`}
+                        stroke={a.color}
+                        stroke-width={dRama ? 1.2 : 1.8}
+                        stroke-dasharray={dRama ? '5 6' : 'none'}
+                        fill="none"
+                        opacity="0.85"
+                      />
+                      {!dRama && (
+                        <text
+                          x={mx} y={my - 8}
+                          text-anchor="middle"
+                          style="fill:#0a0e1a; stroke:#0a0e1a; stroke-width:4px; paint-order:stroke;"
+                          font-size="10" font-family="monospace"
+                        >{a.label}</text>
+                      )}
+                      {!dRama && (
+                        <text x={mx} y={my - 8} text-anchor="middle" fill={a.color} font-size="10" font-family="monospace">{a.label}</text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+
+              <!-- Nodos -->
+              {nodos.map((n) => (
+                <button
+                  type="button"
+                  class={`card-nodo absolute w-60 cursor-pointer rounded-xl border-2 ${n.color} bg-abyss-800 text-left shadow-lg transition hover:scale-105 hover:bg-abyss-700`}
+                  style={`left: ${n.x}px; top: ${n.y}px;`}
+                  data-nodo={n.k}
+                  title={n.nombre}
+                >
+                  <div class="aspect-video overflow-hidden rounded-t-xl bg-abyss-900">
+                    <img
+                      src={`/narrativa/img/${n.k}.png`}
+                      alt={`${n.nombre} · ${n.tipo}`}
+                      class="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="p-3">
+                    <p class="text-[9px] tracking-widest text-ink-500 uppercase">{n.tipo}</p>
+                    <h3 class="mt-0.5 text-base font-bold text-ink-100">{n.nombre}</h3>
+                    <p class="mt-1 text-[11px] leading-snug text-ink-300">{n.dialogo}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <p class="mt-3 rounded-lg border border-ink-700 bg-abyss-900/60 px-4 py-2.5 text-xs leading-relaxed text-ink-500">
+            Lienzo {W} × {H} px · la rueda hace scroll vertical de la página; al llegar al final desliza el lienzo.
+            <kbd class="rounded border border-ink-600 bg-abyss-800 px-1.5 py-0.5 font-mono text-[10px] text-ink-300">Shift</kbd> + rueda mueve el lienzo en horizontal.
+          </p>
+
+          <!-- Detalle del nodo -->
+          <div class="mt-6 rounded-2xl border border-ink-700 bg-abyss-900 p-6">
+            <p class="mb-3 text-[10px] tracking-widest text-ink-500 uppercase">Detalle del nodo</p>
+            <div id="detalle-nodo">
+              <p class="text-ink-500">Selecciona un nodo del lienzo para inspeccionar su narración, diálogo y conexiones.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PESTAÑA 2 · LÍNEA DE TIEMPO ============ -->
+        <section id="panel-tiempo" class="w-full shrink-0 px-1 pb-2">
+          <div class="nodo-scroll overflow-x-auto pb-4">
+            <div class="min-w-[900px] rounded-2xl border border-ink-700 bg-abyss-900 p-6">
+              <div class="grid grid-cols-2 gap-4">
+                {lineasTiempo.map((l) => (
+                  <div class="rounded-xl border border-ink-700 bg-abyss-800 px-4 py-3">
+                    <p class="text-[10px] tracking-widest text-ink-500 uppercase">{l.nivel}</p>
+                    <p class="mt-1 font-bold text-ink-100">{l.nombre}</p>
+                    <p class="mt-1 text-xs text-ink-500">{l.detalle}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div class="mt-4 grid grid-cols-3 gap-3">
+                {fichasEscena.map((f) => (
+                  <div class={`rounded-xl border ${f.color} bg-abyss-800 px-4 py-3`}>
+                    <p class="text-[10px] tracking-widest text-ink-500 uppercase">Escena</p>
+                    <p class="mt-1 text-sm font-bold text-ink-100">{f.nombre}</p>
+                    <p class="mt-1 text-xs text-ink-500">{f.detalle}</p>
+                  </div>
+                ))}
+              </div>
+
+              <!-- Línea de tiempo con puntos -->
+              <div class="mt-8">
+                <div class="relative border-t-2 border-ink-700 pt-8">
+                  <div class="flex justify-between">
+                    {puntosEscena.map((p, i) => (
+                      <div key={p.nodo} class="relative w-14 text-center">
+                        <span class={`absolute left-1/2 top-[-31px] h-3 w-3 -translate-x-1/2 rounded-full ${p.color}`} />
+                        <p class="cursor-pointer text-[11px] font-bold text-ink-100 transition hover:text-neon-cyan" data-click-nodo={p.nodo}>{p.nombre}</p>
+                        <p class="mt-0.5 text-[9px] text-ink-500">{p.detalle}</p>
+                        {i < puntosEscena.length - 1 && (
+                          <span class="absolute top-[-15px] left-[calc(50%+10px)] w-full text-ink-600">―</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p class="mt-3 text-center text-[10px] text-ink-500">
+                  Las líneas que cruzan entre ramas (↺) se muestran en el tablero de nodos.
+                </p>
+              </div>
+
+              <!-- Guion por escena -->
+              <div class="mt-8 border-t border-ink-700 pt-6">
+                <h3 class="mb-4 font-bold text-ink-100">Guion por escena</h3>
+                <div class="space-y-8">
+                  {escenas.map((e) => (
+                    <div>
+                      <p class="mb-3 font-mono text-xs tracking-widest text-gold uppercase">{e.nombre}</p>
+                      <div class="rounded-xl border border-ink-700 bg-abyss-950 px-5 py-4 font-mono text-sm leading-relaxed">
+                        {e.guion.map(([texto, tipo]) => (
+                          <p key={texto + tipo} class={`${claseGuion[tipo]} ${espaciar[tipo] ?? ''}`}>{texto}</p>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
 
-    <p class="mt-6 text-xs leading-relaxed text-ink-500">
+    <p class="mt-10 text-xs leading-relaxed text-ink-500">
       Propuesta narrativa del ACA 1 — Narrativas interactivas y creación de universos ·
       Personajes: Kratos, Helia (sacerdotisa del orbe) y Asterión (guardián del templo).
     </p>
   </main>
+
+  <!-- Modal · Novela visual -->
+  <div id="modal-juego" class="fixed inset-0 z-50 hidden items-center justify-center bg-abyss-950/80 p-4 backdrop-blur-sm md:p-8" role="dialog" aria-modal="true" aria-label="Novela visual — El artefacto del destino">
+    <div id="vn-panel" class="w-full max-w-4xl overflow-hidden rounded-2xl border border-ink-700 bg-abyss-900 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-ink-700 bg-abyss-800 px-4 py-2.5">
+        <p class="font-mono text-xs tracking-widest text-neon-cyan uppercase">Novela visual · El artefacto del destino</p>
+        <div class="flex items-center gap-2">
+          <button type="button" id="vn-atras" class="hidden rounded-lg border border-ink-600 bg-abyss-800 px-3 py-1.5 text-xs font-semibold text-ink-200 transition hover:bg-abyss-700">← Volver</button>
+          <button type="button" id="vn-reiniciar" class="hidden rounded-lg border border-ink-600 bg-abyss-800 px-3 py-1.5 text-xs font-semibold text-ink-200 transition hover:bg-abyss-700">↺ Reiniciar</button>
+          <button type="button" id="vn-cerrar" class="rounded-lg border border-ink-600 bg-abyss-800 px-3 py-1.5 text-xs font-semibold text-ink-200 transition hover:bg-abyss-700">✕ Cerrar</button>
+        </div>
+      </div>
+      <div id="vn-rastro" class="flex flex-wrap items-center gap-1 border-b border-ink-700/60 bg-abyss-950/40 px-4 py-1.5 font-mono text-[10px] tracking-widest text-ink-400 uppercase"></div>
+      <div class="relative aspect-video w-full overflow-hidden bg-abyss-950">
+        <img id="vn-img" class="h-full w-full object-cover" alt="" />
+        <div class="absolute inset-0 bg-gradient-to-t from-abyss-950 via-transparent to-transparent"></div>
+        <p id="vn-locacion" class="absolute bottom-3 left-4 font-mono text-[11px] tracking-widest text-neon-cyan/90 uppercase"></p>
+      </div>
+      <div class="p-5 md:p-6">
+        <h3 id="vn-titulo" class="text-lg font-bold text-gold"></h3>
+        <div id="vn-texto" class="mt-2 space-y-2 leading-relaxed text-ink-200"></div>
+        <div id="vn-opciones" class="mt-5 flex flex-col gap-2"></div>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
 
+<style>
+  @keyframes vn-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  .vn-fade { animation: vn-fade 0.35s ease-out both; }
+
+  @keyframes vn-pop {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  .vn-pop { animation: vn-pop 0.22s ease-out both; }
+
+  .nodo-board {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+</style>
+
 <script>
-  interface Nodo {
+  interface DetalleNodo {
+    nombre: string;
+    tipo: string;
     narracion: string;
-    personaje?: string;
     dialogo?: string;
-    opciones: { texto: string; siguiente: string }[];
     fin?: string;
-    tipo: 'fin';
+    salidas: { label: string; a: string }[];
+    rama?: string;
   }
 
-  const nodos: Record<string, Nodo> = {
+  const detalle: Record<string, DetalleNodo> = {
     inicio: {
-      narracion:
-        'Kratos avanza entre los escombros de la ciudad costera. En el templo derruido, una sacerdotisa herida sostiene un orbe que puede alterar los Hilos del Destino. Antes de que decida, una sombra lo espera en la entrada.',
-      opciones: [{ texto: 'Avanzar hacia la sacerdotisa', siguiente: 'trato' }],
+      nombre: 'Inicio', tipo: 'CONTEXTO',
+      narracion: 'Kratos avanza entre los escombros de la ciudad costera. En el templo derruido, una sacerdotisa herida sostiene un orbe que puede alterar los Hilos del Destino. Antes de que decida, una sombra lo espera en la entrada.',
+      salidas: [{ label: 'Avanzar hacia la sacerdotisa', a: 'trato' }],
     },
     trato: {
-      narracion:
-        'Helia le muestra el orbe a Kratos. Su voz suena apagada por la herida, pero firmes son sus palabras.',
-      personaje: 'HELIA',
-      dialogo:
-        'Usar este orbe significará sacrificar un recuerdo que te define. No sabrás cuál hasta que lo pierdas.',
-      opciones: [
-        { texto: 'A · "No necesito recuerdos. Solo necesito poder."', siguiente: 'finalA' },
-        { texto: 'B · "Explícame. ¿Qué recuerdo perderé?"', siguiente: 'finalB' },
-        { texto: 'C · "Ningún artefacto vale ese precio."', siguiente: 'finalC' },
+      nombre: 'Trato', tipo: 'DECISIÓN',
+      narracion: 'Helia le muestra el orbe a Kratos. Su voz suena apagada por la herida, pero firmes son sus palabras: usar el orbe cuesta un recuerdo que lo define.',
+      dialogo: 'Usar este orbe significará sacrificar un recuerdo que te define. No sabrás cuál hasta que lo pierdas.',
+      salidas: [
+        { label: 'A · Aceptar el precio', a: 'pacto' },
+        { label: 'B · Preguntar el precio', a: 'pregunta' },
+        { label: 'C · Rechazar el artefacto', a: 'negativa' },
+      ], rama: 'A',
+    },
+    pacto: {
+      nombre: 'Pacto', tipo: 'RAMA A',
+      narracion: 'Kratos acepta. El orbe zumba en sus manos mientras Helia advierte que es la última vez que la verdad queda intacta.',
+      dialogo: '¿Lo aceptarás ahora, o antes de que el precio te alcance?',
+      salidas: [
+        { label: 'A1 · Sellar el pacto de inmediato', a: 'finalA' },
+        { label: 'A2 · Exigir la verdad antes de sellar', a: 'advertencia' },
+      ], rama: 'A',
+    },
+    pregunta: {
+      nombre: 'Pregunta', tipo: 'RAMA B',
+      narracion: 'Kratos no sella aún. Interroga a Helia sobre el precio exacto: el orbe no cobra cualquier recuerdo, sino el que define a quien lo usa.',
+      dialogo: '¿Qué recuerdo es el que define a un hombre?',
+      salidas: [
+        { label: 'B1 · Indagar sobre los Hilos del Destino', a: 'hilos' },
+        { label: 'B2 · Arrebatar el orbe de sus manos', a: 'arrebato' },
+      ], rama: 'B',
+    },
+    negativa: {
+      nombre: 'Negativa', tipo: 'RAMA C',
+      narracion: 'Kratos rehúsa el poder. Asterión, que vigila desde la entrada, interpreta la negativa como un intento de robo y cierra el paso con la espada desenvainada.',
+      salidas: [
+        { label: 'C1 · Abatir al guardián y salir', a: 'fuga' },
+        { label: 'C2 · Explicar la renuncia a Helia', a: 'razon' },
+      ], rama: 'C',
+    },
+    advertencia: {
+      nombre: 'Advertencia', tipo: 'NUDO CLAVE · CRUCE',
+      narracion: 'Antes de sellar, Helia confiesa la verdad: el orbe no solo cobra un recuerdo, desgasta al portador con cada Hilo manipulado. Esa información, si Kratos la usa, lo empuja a buscar una salida distinta.',
+      dialogo: 'No es solo el recuerdo. El precio sigue cobrándose, hasta que no queda nada que definirte.',
+      salidas: [
+        { label: '↺ Exigir la explicación completa (cruza a B)', a: 'hilos' },
+        { label: 'Proseguir con el pacto de todos modos', a: 'finalA' },
+      ],
+    },
+    hilos: {
+      nombre: 'Los Hilos', tipo: 'NUDO CLAVE · CRUCE',
+      narracion: 'Se revela el secreto del artefacto: el orbe reescribe un único hilo del destino. Kratos comprende que puede evitar la catástrofe de su propia historia… o renunciar a ella.',
+      salidas: [
+        { label: 'Corregir un único hilo (a Final B)', a: 'finalB' },
+        { label: '↺ El precio excede lo admisible (cruza a C)', a: 'razon' },
+      ],
+    },
+    arrebato: {
+      nombre: 'Arrebato', tipo: 'NUDO CLAVE · CRUCE',
+      narracion: 'Kratos arrebata el orbe; la capa de cristal se raja y una parte de su energía se derrama. El poder sigue ahí, incompleto y tentador.',
+      salidas: [
+        { label: 'Conservar el orbe roto (a Final B)', a: 'finalB' },
+        { label: '↺ Necesitar su poder de nuevo (cruza a A)', a: 'pacto' },
+      ],
+    },
+    fuga: {
+      nombre: 'Fuga', tipo: 'NUDO CLAVE',
+      narracion: 'Kratos abate a los guardias del umbral, pero el suelo cede bajo el peso de la pelea. La escapatoria conduce al altar: el duelo ya no se puede evitar.',
+      salidas: [{ label: 'La fuga cruza el altar (a El Encuentro)', a: 'encuentro' }],
+    },
+    razon: {
+      nombre: 'La Razón', tipo: 'NUDO CLAVE · CRUCE',
+      narracion: 'Kratos explica a Helia que ninguna victoria vale perder lo que lo define. Desarmado, la sacerdotisa duda… y Asterión decide zanjarlo: el duelo decide quién sale del templo.',
+      dialogo: 'Si el precio es mi identidad, entonces el orbe no vale nada.',
+      salidas: [{ label: 'Asterión exige el duelo (a El Encuentro)', a: 'encuentro' }],
+    },
+    encuentro: {
+      nombre: 'El Encuentro', tipo: 'CONVERGENCIA · ESCENA 3',
+      narracion: 'Sobre el altar ardiente, Kratos y Asterión cruzan las espadas. Helia sostiene el orbe al fondo. La decisión final ya no es del trato: es de la pelea.',
+      salidas: [
+        { label: 'Empuñar el orbe en pleno duelo', a: 'finalA' },
+        { label: 'Romper el orbe para sellar el destino', a: 'finalB' },
+        { label: 'Vencer y huir de la ruina', a: 'finalC' },
       ],
     },
     finalA: {
-      narracion:
-        'Kratos toma el orbe. Acepta el precio sin dudar. Mientras las llamas del templo parpadean, Asterión aparece detrás con la espada desenvainada. Kratos descubre que el recuerdo perdido es la cara de su hija.',
-      fin: "Perdiste el recuerdo de la cara de tu hija. Asterión ataca.",
-      tipo: 'fin',
-      opciones: [],
+      nombre: 'Final A', tipo: 'FIN · RECUERDO',
+      narracion: 'Kratos empuña el orbe durante el duelo y acepta el precio. El templo arde, Asterión cae, y el recuerdo de la cara de su hija se desvanece para siempre.',
+      fin: 'El recuerdo de su hija se pierde. La victoria sabe a ceniza.',
+      salidas: [{ label: 'Reiniciar la escena', a: 'inicio' }],
     },
     finalB: {
-      narracion:
-        'Kratos pregunta. Helia revela que el orbe cobra aquello que más define a quien lo usa. Antes de terminar, Asterión rompe el umbral y el orbe se quiebra. Una nueva ruta se abre entre los escombros.',
-      fin: 'El orbe se rompió. Kratos debe buscar otra solución.',
-      tipo: 'fin',
-      opciones: [],
+      nombre: 'Final B', tipo: 'FIN · ORBE ROTO',
+      narracion: 'Kratos rompe el orbe para sellar el destino. El templo tiembla, la energía se libera y una nueva ruta se abre entre los escombros, sin deudas ni recuerdos perdidos.',
+      fin: 'El orbe se rompió. El destino queda sellado.',
+      salidas: [{ label: 'Reiniciar la escena', a: 'inicio' }],
     },
     finalC: {
-      narracion:
-        'Kratos arroja el orbe contra el altar. El templo se sacude y las columnas empiezan a ceder. Preserva su identidad, pero pierde la oportunidad de torcer el destino. La fuga comienza.',
-      fin: 'El templo colapsa. Kratos conserva su identidad.',
-      tipo: 'fin',
-      opciones: [],
+      nombre: 'Final C', tipo: 'FIN · RUIDA',
+      narracion: 'Kratos vence en el duelo y huye mientras el templo colapsa. Conserva su identidad y el rencor intacto: el destino tendrá que cobrarse en otro lugar.',
+      fin: 'El templo cae. Kratos conserva su identidad.',
+      salidas: [{ label: 'Reiniciar la escena', a: 'inicio' }],
     },
   };
 
-  const estado = document.getElementById('estado');
-  const opciones = document.getElementById('opciones');
-  const reiniciar = document.getElementById('reiniciar');
+  const detalleEl = document.getElementById('detalle-nodo');
+  const paneles = document.getElementById('paneles');
 
-  function renderizar(index: string) {
-    const nodo = nodos[index];
-    if (!nodo) return;
+  // ---- Pestañas con deslizamiento horizontal ----
+  const tabNodos = document.getElementById('tab-nodos');
+  const tabTiempo = document.getElementById('tab-tiempo');
+  const actClase = ['text-neon-cyan', 'bg-abyss-800'];
+  const inactClase = ['text-ink-500', 'bg-transparent'];
 
-    estado!.innerHTML = '';
-    const narracion = document.createElement('p');
-    narracion.className = 'mb-4 leading-relaxed text-ink-300';
-    narracion.textContent = nodo.narracion;
-    estado!.appendChild(narracion);
+  function pintarTab(el: HTMLElement, activo: boolean) {
+    actClase.forEach((c) => el.classList.toggle(c, activo));
+    inactClase.forEach((c) => el.classList.toggle(c, !activo));
+  }
 
-    if (nodo.personaje && nodo.dialogo) {
-      const personaje = document.createElement('p');
-      personaje.className = 'mt-4 font-bold tracking-wide text-neon-magenta uppercase';
-      personaje.textContent = nodo.personaje;
+  function activar(pestana: 'nodos' | 'tiempo') {
+    const esNodos = pestana === 'nodos';
+    paneles!.style.transform = esNodos ? 'translateX(0)' : 'translateX(-100%)';
+    pintarTab(tabNodos!, esNodos);
+    pintarTab(tabTiempo!, !esNodos);
+  }
+  tabNodos!.addEventListener('click', () => activar('nodos'));
+  tabTiempo!.addEventListener('click', () => activar('tiempo'));
+  document.getElementById('btn-jugar')!.addEventListener('click', jugar);
 
-      const dialogo = document.createElement('p');
-      dialogo.className = 'border-l-2 border-blood-moon pl-4 italic leading-relaxed text-ink-100';
-      dialogo.textContent = `"${nodo.dialogo}"`;
-      estado!.appendChild(personaje, dialogo);
+  // ---- Navegación con historial (volver atrás) ----
+  let historial: string[] = [];
+  let nodoActual = '';
+
+  function marcarNodoActivo() {
+    document.querySelectorAll<HTMLElement>('.card-nodo').forEach((c) => {
+      const activo = c.dataset.nodo === nodoActual;
+      c.classList.toggle('ring-2', activo);
+      c.classList.toggle('ring-[#00e5ff]', activo);
+    });
+  }
+
+  function jugar() {
+    abrirJuego('inicio');
+  }
+
+  function volverAtras() {
+    const anterior = historial.pop();
+    if (!anterior) return;
+    nodoActual = anterior;
+    pintarDetalle();
+    marcarNodoActivo();
+  }
+
+  function pintarDetalle() {
+    const n = detalle[nodoActual];
+    if (!n || !detalleEl) return;
+    detalleEl.innerHTML = '';
+    if (historial.length) {
+      const barra = document.createElement('div');
+      barra.className = 'mb-3 flex flex-wrap items-center gap-2';
+      const atras = document.createElement('button');
+      atras.type = 'button';
+      atras.className =
+        'rounded-lg border border-ink-600 bg-abyss-800 px-3 py-1.5 text-xs font-semibold text-ink-200 transition hover:bg-abyss-700';
+      atras.textContent = '← Volver atrás';
+      atras.onclick = volverAtras;
+      const reiniciar = document.createElement('button');
+      reiniciar.type = 'button';
+      reiniciar.className =
+        'rounded-lg border border-ink-600 bg-abyss-800 px-3 py-1.5 text-xs font-semibold text-ink-200 transition hover:bg-abyss-700';
+      reiniciar.textContent = '↺ Jugar de nuevo';
+      reiniciar.onclick = jugar;
+      barra.appendChild(atras);
+      barra.appendChild(reiniciar);
+      detalleEl.appendChild(barra);
     }
-
-    if (nodo.fin) {
-      const fin = document.createElement('p');
-      fin.className =
-        'mt-6 rounded-lg bg-vampire-900 px-4 py-3 font-semibold text-vampire-300';
-      fin.textContent = nodo.fin;
-      estado!.appendChild(fin);
+    const titulo = document.createElement('h3');
+    titulo.className = 'text-xl font-bold text-ink-100';
+    titulo.textContent = `${n.nombre} · ${n.tipo}`;
+    detalleEl.appendChild(titulo);
+    const desc = document.createElement('p');
+    desc.className = 'mt-2 leading-relaxed text-ink-300';
+    desc.textContent = n.narracion;
+    detalleEl.appendChild(desc);
+    if (n.dialogo) {
+      const d = document.createElement('p');
+      d.className = 'mt-3 border-l-2 border-gold pl-4 italic text-ink-100';
+      d.textContent = `«${n.dialogo}»`;
+      detalleEl.appendChild(d);
     }
-
-    opciones!.innerHTML = '';
-    if (nodo.opciones.length > 0) {
-      for (const opcion of nodo.opciones) {
+    if (n.fin) {
+      const f = document.createElement('p');
+      f.className = 'mt-4 inline-block rounded-lg bg-vampire-900 px-4 py-2 font-semibold text-vampire-300';
+      f.textContent = n.fin;
+      detalleEl.appendChild(f);
+    }
+    if (n.salidas.length) {
+      const rotulo = document.createElement('p');
+      rotulo.className = 'mt-4 text-[10px] tracking-widest text-ink-500 uppercase';
+      rotulo.textContent = 'Conexiones salientes';
+      detalleEl.appendChild(rotulo);
+      const caja = document.createElement('div');
+      caja.className = 'mt-2 flex flex-col gap-2';
+      for (const s of n.salidas) {
         const boton = document.createElement('button');
         boton.type = 'button';
-        boton.className =
-          'rounded-lg border border-neon-cyan/50 bg-abyss-800 px-5 py-3 text-left transition hover:border-neon-cyan hover:bg-abyss-700';
-        boton.textContent = opcion.texto;
-        boton.onclick = () => renderizar(opcion.siguiente);
-        opciones!.appendChild(boton);
+        boton.className = 'rounded-lg border border-neon-cyan/40 bg-abyss-800 px-4 py-2 text-left text-sm text-neon-cyan transition hover:bg-abyss-700';
+        boton.textContent = `→ ${s.label}`;
+        boton.onclick = () => mostrarNodo(s.a);
+        caja.appendChild(boton);
       }
+      detalleEl.appendChild(caja);
     }
-
-    reiniciar!.classList.toggle('hidden', !nodo.fin);
   }
 
-  function iniciarEscena() {
-    renderizar('inicio');
+  function mostrarNodo(clave: string) {
+    if (!detalle[clave]) return;
+    if (clave === nodoActual) return;
+    if (nodoActual) historial.push(nodoActual);
+    nodoActual = clave;
+    pintarDetalle();
+    marcarNodoActivo();
   }
 
-  iniciarEscena();
+  document.querySelectorAll<HTMLButtonElement>('.card-nodo').forEach((c) =>
+    c.addEventListener('click', () => mostrarNodo(c.dataset.nodo ?? '')),
+  );
+  document.querySelectorAll<HTMLElement>('[data-click-nodo]').forEach((el) =>
+    el.addEventListener('click', () => abrirJuego(el.dataset.clickNodo ?? '')),
+  );
+
+  // ---- Modal · Novela visual ----
+  const modal = document.getElementById('modal-juego') as HTMLElement;
+  const vnPanel = document.getElementById('vn-panel') as HTMLElement | null;
+  const vnImg = document.getElementById('vn-img') as HTMLImageElement | null;
+  const vnLocacion = document.getElementById('vn-locacion') as HTMLElement | null;
+  const vnTitulo = document.getElementById('vn-titulo') as HTMLElement | null;
+  const vnTexto = document.getElementById('vn-texto') as HTMLElement | null;
+  const vnOpciones = document.getElementById('vn-opciones') as HTMLElement | null;
+  const vnCerrar = document.getElementById('vn-cerrar') as HTMLButtonElement | null;
+  const vnAtras = document.getElementById('vn-atras') as HTMLButtonElement | null;
+  const vnReiniciar = document.getElementById('vn-reiniciar') as HTMLButtonElement | null;
+  const vnRastro = document.getElementById('vn-rastro') as HTMLElement | null;
+
+  let vnAbierto = false;
+  let vnActual = '';
+  let vnHistorial: string[] = [];
+
+  const rastro: Record<string, { acto: string; secuencia: string; escena: string; beat: string }> = {
+    inicio: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 1', beat: 'Beat · La entrada' },
+    trato: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 1', beat: 'Beat · El trato' },
+    pacto: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama A', beat: 'Beat · Sellar el pacto' },
+    pregunta: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama B', beat: 'Beat · El precio exacto' },
+    negativa: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama C', beat: 'Beat · El rechazo' },
+    advertencia: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama A', beat: 'Beat · La advertencia' },
+    hilos: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama B', beat: 'Beat · Los Hilos' },
+    arrebato: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama B', beat: 'Beat · El arrebato' },
+    fuga: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama C', beat: 'Beat · La fuga' },
+    razon: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 2 · Rama C', beat: 'Beat · La razón' },
+    encuentro: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 3 · Convergencia', beat: 'Beat · El duelo' },
+    finalA: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 3 · Desenlaces', beat: 'Beat · Final A · recuerdo' },
+    finalB: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 3 · Desenlaces', beat: 'Beat · Final B · orbe roto' },
+    finalC: { acto: 'Acto I · El precio del destino', secuencia: 'Secuencia · El templo costero', escena: 'Escena 3 · Desenlaces', beat: 'Beat · Final C · ruina' },
+  };
+
+  function botonVn(texto: string, onClic: () => void, destacado = false) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = destacado
+      ? 'rounded-lg border border-gold bg-gold/10 px-4 py-2.5 text-left text-sm font-semibold text-gold transition hover:bg-gold/20'
+      : 'rounded-lg border border-neon-cyan/40 bg-abyss-800 px-4 py-2.5 text-left text-sm text-neon-cyan transition hover:bg-abyss-700';
+    b.textContent = texto;
+    b.onclick = onClic;
+    return b;
+  }
+
+  function pintarVn() {
+    const n = detalle[vnActual];
+    if (!n || !vnTexto || !vnOpciones || !vnImg || !vnTitulo || !vnLocacion) return;
+    vnImg.src = `/narrativa/img/${vnActual}.png`;
+    vnImg.alt = `${n.nombre} · ${n.tipo}`;
+    vnLocacion.textContent = n.tipo;
+    vnTitulo.textContent = n.nombre;
+    if (vnRastro) {
+      vnRastro.innerHTML = '';
+      const partes = [rastro[vnActual]?.acto, rastro[vnActual]?.secuencia, rastro[vnActual]?.escena, rastro[vnActual]?.beat];
+      partes.forEach((p, i) => {
+        if (!p) return;
+        const s = document.createElement('span');
+        s.className = 'rounded bg-abyss-800 px-2 py-0.5';
+        s.textContent = p;
+        vnRastro.appendChild(s);
+        if (i < partes.length - 1) {
+          const g = document.createElement('span');
+          g.className = 'text-ink-600';
+          g.textContent = '›';
+          vnRastro.appendChild(g);
+        }
+      });
+    }
+    vnTexto.innerHTML = '';
+    const nar = document.createElement('p');
+    nar.textContent = n.narracion;
+    vnTexto.appendChild(nar);
+    if (n.dialogo) {
+      const d = document.createElement('p');
+      d.className = 'border-l-2 border-gold pl-3 italic text-ink-100';
+      d.textContent = `«${n.dialogo}»`;
+      vnTexto.appendChild(d);
+    }
+    if (n.fin) {
+      const f = document.createElement('p');
+      f.className = 'rounded-lg bg-vampire-900 px-3 py-2 font-semibold text-vampire-300';
+      f.textContent = n.fin;
+      vnTexto.appendChild(f);
+    }
+    vnTexto.classList.remove('vn-fade');
+    void vnTexto.offsetWidth;
+    vnTexto.classList.add('vn-fade');
+    vnOpciones.innerHTML = '';
+    if (n.fin) {
+      vnOpciones.appendChild(botonVn('↺ Jugar de nuevo', vnReiniciarJuego, true));
+    } else {
+      for (const s of n.salidas) vnOpciones.appendChild(botonVn(`→ ${s.label}`, () => mostrarVn(s.a, true)));
+    }
+    vnAtras?.classList.toggle('hidden', vnHistorial.length === 0);
+    vnReiniciar?.classList.toggle('hidden', vnHistorial.length === 0);
+  }
+
+  function mostrarVn(clave: string, conHistorial: boolean) {
+    if (!detalle[clave]) return;
+    if (conHistorial && vnActual) vnHistorial.push(vnActual);
+    vnActual = clave;
+    pintarVn();
+  }
+
+  function vnReiniciarJuego() {
+    vnHistorial = [];
+    vnActual = '';
+    mostrarVn('inicio', false);
+  }
+
+  function abrirJuego(clave: string) {
+    vnAbierto = true;
+    vnActual = '';
+    vnHistorial = [];
+    document.body.classList.add('overflow-hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    marcarNodoActivo();
+    if (vnPanel) {
+      vnPanel.classList.remove('vn-pop');
+      void vnPanel.offsetWidth;
+      vnPanel.classList.add('vn-pop');
+    }
+    mostrarVn(clave, false);
+  }
+
+  function cerrarJuego() {
+    vnAbierto = false;
+    document.body.classList.remove('overflow-hidden');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  function vnVolver() {
+    const prev = vnHistorial.pop();
+    if (prev) {
+      vnActual = prev;
+      pintarVn();
+    }
+  }
+
+  vnCerrar?.addEventListener('click', cerrarJuego);
+  vnAtras?.addEventListener('click', vnVolver);
+  vnReiniciar?.addEventListener('click', vnReiniciarJuego);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) cerrarJuego();
+  });
+
+  // ---- Rueda del ratón: desacoplada del conflicto vertical ----
+  function paginaPuedeRodar(deltaY: number) {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const y = window.scrollY;
+    return (deltaY > 0 && y < max) || (deltaY < 0 && y > 0);
+  }
+
+  document.querySelectorAll<HTMLElement>('.nodo-scroll').forEach((area) => {
+    area.addEventListener('wheel', (e) => {
+      if (area.scrollWidth <= area.clientWidth) return;
+      if (e.shiftKey) {
+        area.scrollLeft += e.deltaY;
+        e.preventDefault();
+      } else if (Math.abs(e.deltaX) > 0) {
+        area.scrollLeft += e.deltaX;
+        e.preventDefault();
+      } else if (!paginaPuedeRodar(e.deltaY)) {
+        area.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    });
+  });
+
+  // ---- Teclado: flechas cambian pestañas, Esc cierra el modal ----
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (vnAbierto) cerrarJuego();
+      return;
+    }
+    if (vnAbierto) return;
+    if (e.key === 'ArrowRight') activar('tiempo');
+    if (e.key === 'ArrowLeft') activar('nodos');
+  });
+
+  activar('nodos');
 </script>
