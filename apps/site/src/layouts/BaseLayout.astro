@@ -4,7 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Maintenance from '../components/Maintenance.astro';
-import { MAINTENANCE_MODE } from '../lib/maintenance';
+import { pageInMaintenance } from '../lib/maintenance';
 import { getLangFromUrl } from '../i18n/ui';
 
 interface Props {
@@ -20,6 +20,7 @@ interface Props {
 const { title, description, lang, ogImage, ogType = 'website', pubDate, author = 'Melquisedec Casallas' } =
   Astro.props;
 const currentLang = lang ?? getLangFromUrl(Astro.url);
+const inMaintenance = pageInMaintenance(Astro.url.pathname);
 const site = Astro.site ?? new URL('https://mqestudios.com');
 const canonical = new URL(Astro.url.pathname, site);
 const defaultDescription =
@@ -27,12 +28,12 @@ const defaultDescription =
     ? 'Ingeniero de Software y desarrollador de videojuegos. MQE Studios.'
     : 'Software Engineer and Game Developer. MQE Studios.';
 const maintenanceTitle = currentLang === 'es' ? 'MQE — En mantenimiento' : 'MQE — Under maintenance';
-const pageTitle = MAINTENANCE_MODE
+const pageTitle = inMaintenance
   ? maintenanceTitle
   : title.includes('MQE')
     ? title
     : `${title} — MQE`;
-const descriptionValue = MAINTENANCE_MODE
+const descriptionValue = inMaintenance
   ? (currentLang === 'es'
       ? 'El sitio está en mantenimiento. Vuelve pronto.'
       : 'The site is under maintenance. Coming back soon.')
@@ -98,7 +99,7 @@ const schemaJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': 
     <meta name="title" content={pageTitle} />
     <meta name="description" content={descriptionValue} />
     <meta name="author" content={author} />
-    <meta name="robots" content={MAINTENANCE_MODE ? 'noindex, nofollow' : 'index, follow'} />
+    <meta name="robots" content={inMaintenance ? 'noindex, nofollow' : 'index, follow'} />
     <meta name="theme-color" content="#05070f" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonical.href} />
@@ -151,7 +152,7 @@ const schemaJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': 
   </head>
   <body class="min-h-screen flex flex-col scanlines">
     {
-      MAINTENANCE_MODE ? (
+      inMaintenance ? (
         <Maintenance lang={currentLang} />
       ) : (
         <>

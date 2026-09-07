@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = 'El artefacto del destino — Escena interactiva';
+const description =
+  'Escena ramificada narrativa en el universo de God of War 2. Una propuesta del ACA de Narrativas interactivas y creación de universos.';
+---
+
+<BaseLayout title={title} description={description} lang="es">
+  <main class="relative mx-auto max-w-3xl px-6 py-16">
+    <p class="mb-2 text-sm tracking-widest text-neon-cyan uppercase">Experimento narrativo</p>
+    <h1 class="mb-4 text-3xl font-bold text-ink-100 md:text-4xl">
+      El artefacto del destino
+    </h1>
+    <p class="mb-10 leading-relaxed text-ink-300">
+      Ciudad costera en ruinas, durante los acontecimientos de <em>God of War 2</em>.
+      Toma la decisión: cada camino tiene una consecuencia distinta.
+    </p>
+
+    <section
+      id="escena"
+      class="rounded-2xl border border-ink-700 bg-abyss-900 p-6 shadow-lg md:p-8"
+    >
+      <div id="estado" class="mb-6 min-h-20 text-ink-100"></div>
+
+      <div id="opciones" class="flex flex-col gap-3"></div>
+
+      <div id="reiniciar" class="mt-8 hidden">
+        <button
+          type="button"
+          onclick="iniciarEscena()"
+          class="w-full rounded-lg border border-gold bg-transparent px-5 py-3 font-semibold text-gold transition hover:bg-gold hover:text-abyss-950"
+        >
+          ↺ Volver a empezar
+        </button>
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs leading-relaxed text-ink-500">
+      Propuesta narrativa del ACA 1 — Narrativas interactivas y creación de universos ·
+      Personajes: Kratos, Helia (sacerdotisa del orbe) y Asterión (guardián del templo).
+    </p>
+  </main>
+</BaseLayout>
+
+<script>
+  interface Nodo {
+    narracion: string;
+    personaje?: string;
+    dialogo?: string;
+    opciones: { texto: string; siguiente: string }[];
+    fin?: string;
+    tipo: 'fin';
+  }
+
+  const nodos: Record<string, Nodo> = {
+    inicio: {
+      narracion:
+        'Kratos avanza entre los escombros de la ciudad costera. En el templo derruido, una sacerdotisa herida sostiene un orbe que puede alterar los Hilos del Destino. Antes de que decida, una sombra lo espera en la entrada.',
+      opciones: [{ texto: 'Avanzar hacia la sacerdotisa', siguiente: 'trato' }],
+    },
+    trato: {
+      narracion:
+        'Helia le muestra el orbe a Kratos. Su voz suena apagada por la herida, pero firmes son sus palabras.',
+      personaje: 'HELIA',
+      dialogo:
+        'Usar este orbe significará sacrificar un recuerdo que te define. No sabrás cuál hasta que lo pierdas.',
+      opciones: [
+        { texto: 'A · "No necesito recuerdos. Solo necesito poder."', siguiente: 'finalA' },
+        { texto: 'B · "Explícame. ¿Qué recuerdo perderé?"', siguiente: 'finalB' },
+        { texto: 'C · "Ningún artefacto vale ese precio."', siguiente: 'finalC' },
+      ],
+    },
+    finalA: {
+      narracion:
+        'Kratos toma el orbe. Acepta el precio sin dudar. Mientras las llamas del templo parpadean, Asterión aparece detrás con la espada desenvainada. Kratos descubre que el recuerdo perdido es la cara de su hija.',
+      fin: "Perdiste el recuerdo de la cara de tu hija. Asterión ataca.",
+      tipo: 'fin',
+      opciones: [],
+    },
+    finalB: {
+      narracion:
+        'Kratos pregunta. Helia revela que el orbe cobra aquello que más define a quien lo usa. Antes de terminar, Asterión rompe el umbral y el orbe se quiebra. Una nueva ruta se abre entre los escombros.',
+      fin: 'El orbe se rompió. Kratos debe buscar otra solución.',
+      tipo: 'fin',
+      opciones: [],
+    },
+    finalC: {
+      narracion:
+        'Kratos arroja el orbe contra el altar. El templo se sacude y las columnas empiezan a ceder. Preserva su identidad, pero pierde la oportunidad de torcer el destino. La fuga comienza.',
+      fin: 'El templo colapsa. Kratos conserva su identidad.',
+      tipo: 'fin',
+      opciones: [],
+    },
+  };
+
+  const estado = document.getElementById('estado');
+  const opciones = document.getElementById('opciones');
+  const reiniciar = document.getElementById('reiniciar');
+
+  function renderizar(index: string) {
+    const nodo = nodos[index];
+    if (!nodo) return;
+
+    estado!.innerHTML = '';
+    const narracion = document.createElement('p');
+    narracion.className = 'mb-4 leading-relaxed text-ink-300';
+    narracion.textContent = nodo.narracion;
+    estado!.appendChild(narracion);
+
+    if (nodo.personaje && nodo.dialogo) {
+      const personaje = document.createElement('p');
+      personaje.className = 'mt-4 font-bold tracking-wide text-neon-magenta uppercase';
+      personaje.textContent = nodo.personaje;
+
+      const dialogo = document.createElement('p');
+      dialogo.className = 'border-l-2 border-blood-moon pl-4 italic leading-relaxed text-ink-100';
+      dialogo.textContent = `"${nodo.dialogo}"`;
+      estado!.appendChild(personaje, dialogo);
+    }
+
+    if (nodo.fin) {
+      const fin = document.createElement('p');
+      fin.className =
+        'mt-6 rounded-lg bg-vampire-900 px-4 py-3 font-semibold text-vampire-300';
+      fin.textContent = nodo.fin;
+      estado!.appendChild(fin);
+    }
+
+    opciones!.innerHTML = '';
+    if (nodo.opciones.length > 0) {
+      for (const opcion of nodo.opciones) {
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className =
+          'rounded-lg border border-neon-cyan/50 bg-abyss-800 px-5 py-3 text-left transition hover:border-neon-cyan hover:bg-abyss-700';
+        boton.textContent = opcion.texto;
+        boton.onclick = () => renderizar(opcion.siguiente);
+        opciones!.appendChild(boton);
+      }
+    }
+
+    reiniciar!.classList.toggle('hidden', !nodo.fin);
+  }
+
+  function iniciarEscena() {
+    renderizar('inicio');
+  }
+
+  iniciarEscena();
+</script>
